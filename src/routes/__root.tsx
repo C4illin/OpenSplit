@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Outlet, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 
@@ -14,6 +15,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <TanStackRouterDevtools />
+      <ReactQueryDevtools />
     </QueryClientProvider>
   )
 }

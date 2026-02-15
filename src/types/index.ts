@@ -1,7 +1,7 @@
 export interface Group {
   id: string;
+  members: string[]; // array of person IDs
   name: string;
-  description: string;
   created: string;
   updated: string;
 }

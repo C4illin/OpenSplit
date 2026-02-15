@@ -1,4 +1,3 @@
-import { redirect } from "@tanstack/react-router";
 import { useAuth } from "../hooks/useAuth";
 
 export const App = () => {
@@ -26,12 +25,27 @@ export const App = () => {
           This is the main application page. Use the navigation to explore different groups and manage your expenses.
         </p>
         {/* register with google */}
-        <button
-          className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          onClick={handleLogin}
-        >
-          Sign in with Google
-        </button>
+        {!isAuthenticated ? (
+          <button
+            className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            onClick={handleLogin}
+          >
+            Sign in with Google
+          </button>
+        ) : (
+          <div className="mt-6">
+            <p className="text-green-600">You are logged in as {user?.displayName} ({user?.email})</p>
+            <button
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              onClick={logout}
+            >
+              Logout
+            </button>
+            <button>
+              <a href="/overview" className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Go to Overview</a>
+            </button>
+          </div>
+        )}
       </div>
     </div >
   )

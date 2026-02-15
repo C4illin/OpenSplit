@@ -4,13 +4,16 @@ import type { Expense, Group, Person } from "../types";
 
 // Groups
 export const useGroups = () => {
+  const userId = pb.authStore.record?.id;
   return useQuery({
-    queryKey: ["groups"],
+    queryKey: ["groups", userId],
     queryFn: async () => {
       return await pb.collection("groups").getFullList<Group>({
+        filter: `members ~ "${userId}"`,
         sort: "-created",
       });
     },
+    enabled: !!userId,
   });
 };
 
@@ -28,7 +31,12 @@ export const useCreateGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
-      return await pb.collection("groups").create<Group>(data);
+      const userId = pb.authStore.record?.id;
+      return await pb.collection("groups").create<Group>({
+        ...data,
+        members: userId ? [userId] : [],
+      });
+      
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });

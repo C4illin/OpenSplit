@@ -80,7 +80,6 @@ function GroupsPage() {
                 <h2 className="text-2xl font-semibold text-gray-800">
                   {group.name}
                 </h2>
-                <p className="text-gray-600">{group.description}</p>
               </Link>
             ))}
           </div>

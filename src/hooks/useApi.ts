@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { pb } from "../lib/pocketbase";
-import type { Expense, Group, Person } from "../types";
+import type { Expense, Group, User } from "../types";
 
 // Groups
 export const useGroups = () => {
@@ -11,6 +11,7 @@ export const useGroups = () => {
       return await pb.collection("groups").getFullList<Group>({
         filter: `members ~ "${userId}"`,
         sort: "-created",
+        expand: "members",
       });
     },
     enabled: !!userId,
@@ -36,7 +37,6 @@ export const useCreateGroup = () => {
         ...data,
         members: userId ? [userId] : [],
       });
-      
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
@@ -49,7 +49,7 @@ export const usePeople = (groupId: string) => {
   return useQuery({
     queryKey: ["people", groupId],
     queryFn: async () => {
-      return await pb.collection("people").getFullList<Person>({
+      return await pb.collection("people").getFullList<User>({
         filter: `group = "${groupId}"`,
         sort: "name",
       });
@@ -62,7 +62,7 @@ export const useAddPerson = (groupId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { name: string }) => {
-      return await pb.collection("people").create<Person>({
+      return await pb.collection("people").create<User>({
         ...data,
         group: groupId,
       });

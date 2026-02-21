@@ -1,15 +1,21 @@
 export interface Group {
   id: string;
-  members: string[]; // array of person IDs
+  members: string[];
   name: string;
   created: string;
   updated: string;
+  expand?: {
+    members: User[];
+  };
 }
 
-export interface Person {
+export interface User {
   id: string;
-  group: string;
+  email: string;
+  emailVisibility: boolean;
+  verified: boolean;
   name: string;
+  avatar: string;
   created: string;
   updated: string;
 }

@@ -1,4 +1,8 @@
-import type { GroupsResponse, UsersResponse } from "@/types/pocketbase-types";
+import type {
+  ExpensesResponse,
+  GroupsResponse,
+  UsersResponse,
+} from "@/types/pocketbase-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { pb } from "../lib/pocketbase";
 
@@ -26,9 +30,13 @@ export const useGroups = () => {
 
 export const useGroup = (groupId: string) => {
   return useQuery({
-    queryKey: ["group", groupId],
+    queryKey: ["groups", groupId],
     queryFn: async () => {
-      return await pb.collection("groups").getOne(groupId);
+      return await pb
+        .collection("groups")
+        .getOne<GroupsResponse<GroupsExpand>>(groupId, {
+          expand: "members",
+        });
     },
     enabled: !!groupId,
   });
@@ -50,67 +58,67 @@ export const useCreateGroup = () => {
   });
 };
 
-// People
-export const usePeople = (groupId: string) => {
-  return useQuery({
-    queryKey: ["people", groupId],
-    queryFn: async () => {
-      return await pb.collection("people").getFullList({
-        filter: `group = "${groupId}"`,
-        sort: "name",
-      });
-    },
-    enabled: !!groupId,
-  });
-};
-
-export const useAddPerson = (groupId: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (data: { name: string }) => {
-      return await pb.collection("people").create({
-        ...data,
-        group: groupId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["people", groupId] });
-    },
-  });
-};
-
 // Expenses
+
+type ExpensesExpand = {
+  paidBy?: UsersResponse;
+};
+
 export const useExpenses = (groupId: string) => {
   return useQuery({
     queryKey: ["expenses", groupId],
     queryFn: async () => {
-      return await pb.collection("expenses").getFullList({
-        filter: `group = "${groupId}"`,
-        sort: "-date",
-        expand: "paidBy,splitAmong",
-      });
+      return await pb
+        .collection("expenses")
+        .getFullList<ExpensesResponse<ExpensesExpand>>({
+          filter: `group = "${groupId}"`,
+          sort: "-date",
+          expand: "paidBy",
+        });
     },
     enabled: !!groupId,
   });
 };
 
-export const useAddExpense = (groupId: string) => {
+type CreateExpenseData = {
+  title: string;
+  amount: number;
+  currency: string;
+  date: string;
+  group: string;
+  paidBy: string;
+  splits: { user: string; percentage: number }[];
+};
+
+export const useCreateExpense = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: {
-      description: string;
-      amount: number;
-      paidBy: string;
-      splitAmong: string[];
-      date: string;
-    }) => {
-      return await pb.collection("expenses").create({
-        ...data,
-        group: groupId,
+    mutationFn: async (data: CreateExpenseData) => {
+      const expense = await pb.collection("expenses").create({
+        title: data.title,
+        amount: data.amount,
+        currency: data.currency,
+        date: data.date,
+        group: data.group,
+        paidBy: data.paidBy,
       });
+
+      await Promise.all(
+        data.splits.map((split) =>
+          pb.collection("splits").create({
+            expense: expense.id,
+            user: split.user,
+            percentage: split.percentage,
+          }),
+        ),
+      );
+
+      return expense;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses", groupId] });
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["expenses", variables.group],
+      });
     },
   });
 };

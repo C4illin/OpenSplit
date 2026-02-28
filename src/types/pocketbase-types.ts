@@ -11,7 +11,9 @@ export enum Collections {
 	Mfas = "_mfas",
 	Otps = "_otps",
 	Superusers = "_superusers",
+	Expenses = "expenses",
 	Groups = "groups",
+	Splits = "splits",
 	Users = "users",
 }
 
@@ -93,12 +95,33 @@ export type SuperusersRecord = {
 	verified?: boolean
 }
 
+export type ExpensesRecord = {
+	amount: number
+	created: IsoAutoDateString
+	currency: string
+	date?: IsoDateString
+	group: RecordIdString
+	id: string
+	paidBy: RecordIdString
+	title: string
+	updated: IsoAutoDateString
+}
+
 export type GroupsRecord = {
 	created: IsoAutoDateString
 	id: string
 	members?: RecordIdString[]
 	name: string
 	updated: IsoAutoDateString
+}
+
+export type SplitsRecord = {
+	created: IsoAutoDateString
+	expense?: RecordIdString
+	id: string
+	percentage?: number
+	updated: IsoAutoDateString
+	user?: RecordIdString
 }
 
 export type UsersRecord = {
@@ -120,7 +143,9 @@ export type ExternalauthsResponse<Texpand = unknown> = Required<ExternalauthsRec
 export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemFields<Texpand>
 export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
+export type ExpensesResponse<Texpand = unknown> = Required<ExpensesRecord> & BaseSystemFields<Texpand>
 export type GroupsResponse<Texpand = unknown> = Required<GroupsRecord> & BaseSystemFields<Texpand>
+export type SplitsResponse<Texpand = unknown> = Required<SplitsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
@@ -131,7 +156,9 @@ export type CollectionRecords = {
 	_mfas: MfasRecord
 	_otps: OtpsRecord
 	_superusers: SuperusersRecord
+	expenses: ExpensesRecord
 	groups: GroupsRecord
+	splits: SplitsRecord
 	users: UsersRecord
 }
 
@@ -141,7 +168,9 @@ export type CollectionResponses = {
 	_mfas: MfasResponse
 	_otps: OtpsResponse
 	_superusers: SuperusersResponse
+	expenses: ExpensesResponse
 	groups: GroupsResponse
+	splits: SplitsResponse
 	users: UsersResponse
 }
 

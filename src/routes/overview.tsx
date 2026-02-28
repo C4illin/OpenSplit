@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useCreateGroup, useGroups } from '@/hooks/useApi';
 import { pb } from '@/lib/pocketbase';
 import { useForm } from '@tanstack/react-form';
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -107,24 +107,26 @@ function RouteComponent() {
       {!groups?.length ? (
         <p>You are not a member of any groups.</p>
       ) : groups.map((group) => (
-        <Card className="w-full max-w-sm" key={group.id}>
-          <CardHeader>
-            <CardTitle>{group.name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AvatarGroup>
-              {group.expand?.members.map((member) => (
-                <Avatar>
-                  <AvatarImage src={member.avatar} alt={member.name} />
-                  <AvatarFallback>{member.name[0] + (member.name.split(" ").pop() ?? "")[0]}</AvatarFallback>
-                </Avatar>
-              ))}
-            </AvatarGroup>
-          </CardContent>
-          <CardFooter>
-            {group.expand?.members.length ? `${group.expand.members.length} member${group.expand.members.length > 1 ? 's' : ''}` : 'No members yet'}
-          </CardFooter>
-        </Card>
+        <Link to="/group/$id" params={{ id: group.id }} key={group.id}>
+          <Card className="w-full max-w-sm" key={group.id}>
+            <CardHeader>
+              <CardTitle>{group.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AvatarGroup>
+                {group.expand?.members?.map((member) => (
+                  <Avatar>
+                    <AvatarImage src={member.avatar} alt={member.name} />
+                    <AvatarFallback>{member.name[0] + (member.name.split(" ").pop() ?? "")[0]}</AvatarFallback>
+                  </Avatar>
+                ))}
+              </AvatarGroup>
+            </CardContent>
+            <CardFooter>
+              {group.expand?.members?.length ? `${group.expand.members.length} member${group.expand.members.length > 1 ? 's' : ''}` : 'No members yet'}
+            </CardFooter>
+          </Card>
+        </Link>
       ))}
     </>
   );

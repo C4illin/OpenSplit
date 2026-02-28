@@ -1,6 +1,10 @@
+import type { GroupsResponse, UsersResponse } from "@/types/pocketbase-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { pb } from "../lib/pocketbase";
-import type { Expense, Group, User } from "../types";
+
+type GroupsExpand = {
+  members?: UsersResponse[];
+};
 
 // Groups
 export const useGroups = () => {
@@ -8,11 +12,13 @@ export const useGroups = () => {
   return useQuery({
     queryKey: ["groups", userId],
     queryFn: async () => {
-      return await pb.collection("groups").getFullList<Group>({
-        filter: `members ~ "${userId}"`,
-        sort: "-created",
-        expand: "members",
-      });
+      return await pb
+        .collection("groups")
+        .getFullList<GroupsResponse<GroupsExpand>>({
+          filter: `members ~ "${userId}"`,
+          sort: "-created",
+          expand: "members",
+        });
     },
     enabled: !!userId,
   });
@@ -22,7 +28,7 @@ export const useGroup = (groupId: string) => {
   return useQuery({
     queryKey: ["group", groupId],
     queryFn: async () => {
-      return await pb.collection("groups").getOne<Group>(groupId);
+      return await pb.collection("groups").getOne(groupId);
     },
     enabled: !!groupId,
   });
@@ -33,7 +39,7 @@ export const useCreateGroup = () => {
   return useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
       const userId = pb.authStore.record?.id;
-      return await pb.collection("groups").create<Group>({
+      return await pb.collection("groups").create({
         ...data,
         members: userId ? [userId] : [],
       });
@@ -49,7 +55,7 @@ export const usePeople = (groupId: string) => {
   return useQuery({
     queryKey: ["people", groupId],
     queryFn: async () => {
-      return await pb.collection("people").getFullList<User>({
+      return await pb.collection("people").getFullList({
         filter: `group = "${groupId}"`,
         sort: "name",
       });
@@ -62,7 +68,7 @@ export const useAddPerson = (groupId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { name: string }) => {
-      return await pb.collection("people").create<User>({
+      return await pb.collection("people").create({
         ...data,
         group: groupId,
       });
@@ -78,7 +84,7 @@ export const useExpenses = (groupId: string) => {
   return useQuery({
     queryKey: ["expenses", groupId],
     queryFn: async () => {
-      return await pb.collection("expenses").getFullList<Expense>({
+      return await pb.collection("expenses").getFullList({
         filter: `group = "${groupId}"`,
         sort: "-date",
         expand: "paidBy,splitAmong",
@@ -98,7 +104,7 @@ export const useAddExpense = (groupId: string) => {
       splitAmong: string[];
       date: string;
     }) => {
-      return await pb.collection("expenses").create<Expense>({
+      return await pb.collection("expenses").create({
         ...data,
         group: groupId,
       });

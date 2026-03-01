@@ -1,6 +1,6 @@
 // src/hooks/useAuth.ts
-import { useState, useEffect, useCallback } from 'react';
-import { pb } from '../lib/pocketbase';
+import { useCallback, useEffect, useState } from "react";
+import { pb } from "../lib/pocketbase";
 
 export const useAuth = () => {
   const [user, setUser] = useState(pb.authStore.record);
@@ -14,7 +14,9 @@ export const useAuth = () => {
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
-    const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
+    const authData = await pb
+      .collection("users")
+      .authWithOAuth2({ provider: "google" });
     return authData;
   }, []);
 
@@ -22,5 +24,10 @@ export const useAuth = () => {
     pb.authStore.clear();
   }, []);
 
-  return { user, isAuthenticated: pb.authStore.isValid, loginWithGoogle, logout };
+  return {
+    user,
+    isAuthenticated: pb.authStore.isValid,
+    loginWithGoogle,
+    logout,
+  };
 };

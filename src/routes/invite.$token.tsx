@@ -36,7 +36,7 @@ function RouteComponent() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <p className="text-muted-foreground">Loading invite...</p>
       </div>
     );
@@ -44,13 +44,13 @@ function RouteComponent() {
 
   if (isError || !preview) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Invalid invite</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-muted-foreground">
               This invite link is invalid or has expired.
             </p>
           </CardContent>
@@ -65,17 +65,17 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
+    <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Join {preview.groupName}?</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             You've been invited to join this group.
           </p>
         </CardContent>
-        <CardFooter className="flex gap-2 justify-end">
+        <CardFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={handleDecline}>
             Decline
           </Button>

@@ -129,11 +129,20 @@ function RouteComponent() {
                   {(member.name || member.username).charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="flex-1 text-sm truncate">
+              <span className="flex-1 truncate text-sm">
                 {member.name || member.username}
               </span>
               <span
-                className={`text-sm font-medium ${balance > 0 ? "text-green-600 dark:text-green-400" : balance < 0 ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}`}
+                className={`
+                  text-sm font-medium
+                  ${balance > 0 ? `
+                    text-green-600
+                    dark:text-green-400
+                  ` : balance < 0 ? `
+                    text-red-600
+                    dark:text-red-400
+                  ` : `text-muted-foreground`}
+                `}
               >
                 {balance > 0 ? "+" : ""}
                 {balance.toFixed(2)} {expenses?.[0]?.currency ?? "SEK"}
@@ -145,9 +154,9 @@ function RouteComponent() {
 
       <Separator />
       {isLoading ? (
-        <p className="text-muted-foreground py-8 text-center">Loading...</p>
+        <p className="py-8 text-center text-muted-foreground">Loading...</p>
       ) : !expenses?.length ? (
-        <p className="text-muted-foreground py-8 text-center">
+        <p className="py-8 text-center text-muted-foreground">
           No expenses yet. Tap + to add one.
         </p>
       ) : (
@@ -175,7 +184,9 @@ function RouteComponent() {
                 >
                   <Card className="my-2">
                     <CardHeader className="px-4 py-3">
-                      <CardTitle className="flex items-center justify-between text-base">
+                      <CardTitle className="
+                        flex items-center justify-between text-base
+                      ">
                         <span>{expense.title}</span>
                         <span className="font-semibold">
                           {formatAmount(expense.amount, expense.currency)}
@@ -183,7 +194,10 @@ function RouteComponent() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="px-4 pt-0 pb-3">
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <div className="
+                        flex items-center justify-between text-sm
+                        text-muted-foreground
+                      ">
                         <span>
                           Paid by{" "}
                           {expense.expand?.paidBy?.name ??
@@ -257,9 +271,9 @@ function InviteDialog({
           <DialogTitle>Invite to group</DialogTitle>
         </DialogHeader>
         {createInvite.isPending ? (
-          <p className="text-muted-foreground text-sm">Generating link...</p>
+          <p className="text-sm text-muted-foreground">Generating link...</p>
         ) : createInvite.isError ? (
-          <p className="text-destructive text-sm">Failed to create invite link.</p>
+          <p className="text-sm text-destructive">Failed to create invite link.</p>
         ) : (
           <div className="flex gap-2">
             <Input readOnly value={inviteUrl} className="flex-1" />
@@ -504,7 +518,7 @@ function AddExpenseDialog({
                     <form.Field key={member.id} name={`splits[${i}].percentage`}>
                       {(field) => (
                         <div className="flex items-center gap-2">
-                          <span className="text-sm flex-1 truncate">
+                          <span className="flex-1 truncate text-sm">
                             {member.name || member.username}
                           </span>
                           <Input

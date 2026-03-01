@@ -3,12 +3,8 @@
 const generateTypes = (e) => {
   console.log("Collection changed - Running type generation...");
   const cmd = $os.cmd(
-    "npx",
-    "pocketbase-typegen",
-    "--db",
-    "pb_data/data.db",
-    "--out",
-    "../src/types/pocketbase-types.ts",
+    "npm run",
+    "typegen",
   );
   const result = toString(cmd.output());
   console.log(result);

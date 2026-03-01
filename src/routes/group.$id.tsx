@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -24,6 +25,7 @@ import {
   useCreateExpense,
   useExpenses,
   useGroup,
+  useSplits,
 } from "@/hooks/useApi";
 import { pb } from "@/lib/pocketbase";
 import type { UsersResponse } from "@/types/pocketbase-types";
@@ -55,14 +57,7 @@ function formatDate(dateStr: string) {
 }
 
 function formatAmount(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-    }).format(amount);
-  } catch {
-    return `${amount} ${currency}`;
-  }
+  return `${amount} ${currency}`;
 }
 
 function RouteComponent() {
@@ -75,35 +70,43 @@ function RouteComponent() {
   const parentRef = useRef<HTMLDivElement>(null);
 
   // eslint-disable-next-line react-hooks/incompatible-library
-  const virtualizer = useVirtualizer({
+  const rowVirtualizer = useVirtualizer({
     count: expenses?.length ?? 0,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 88,
-    overscan: 5,
+    estimateSize: () => 128 + 16,
+    // overscan: 5,
   });
 
   return (
-    <div className="flex flex-col h-dvh">
+    <>
       <header className="flex items-center justify-between p-4 pb-2">
         <h1 className="text-xl font-semibold">{group?.name ?? "Group"}</h1>
       </header>
+      <Separator />
 
-      <div ref={parentRef} className="flex-1 overflow-auto px-4">
-        {isLoading ? (
-          <p className="text-muted-foreground py-8 text-center">Loading...</p>
-        ) : !expenses?.length ? (
-          <p className="text-muted-foreground py-8 text-center">
-            No expenses yet. Tap + to add one.
-          </p>
-        ) : (
+      <div>
+        
+
+
+      </div>
+
+      <Separator />
+      {isLoading ? (
+        <p className="text-muted-foreground py-8 text-center">Loading...</p>
+      ) : !expenses?.length ? (
+        <p className="text-muted-foreground py-8 text-center">
+          No expenses yet. Tap + to add one.
+        </p>
+      ) : (
+        <div ref={parentRef} className="px-4">
           <div
             style={{
-              height: `${virtualizer.getTotalSize()}px`,
+              height: `${rowVirtualizer.getTotalSize()}px`,
               position: "relative",
               width: "100%",
             }}
           >
-            {virtualizer.getVirtualItems().map((virtualItem) => {
+            {rowVirtualizer.getVirtualItems().map((virtualItem) => {
               const expense = expenses[virtualItem.index];
               return (
                 <div
@@ -117,7 +120,7 @@ function RouteComponent() {
                     transform: `translateY(${virtualItem.start}px)`,
                   }}
                 >
-                  <Card className="mx-0 my-1">
+                  <Card className="my-2">
                     <CardHeader className="px-4 py-3">
                       <CardTitle className="flex items-center justify-between text-base">
                         <span>{expense.title}</span>
@@ -142,10 +145,11 @@ function RouteComponent() {
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="p-4 pt-2 flex justify-end">
+
+      <div className="sticky bottom-4 left-4">
         <AddExpenseDialog
           groupId={id}
           members={group?.expand?.members ?? []}
@@ -153,7 +157,7 @@ function RouteComponent() {
           onOpenChange={setDialogOpen}
         />
       </div>
-    </div>
+    </>
   );
 }
 
@@ -178,6 +182,7 @@ function AddExpenseDialog({
       title: "",
       amount: "",
       currency: "SEK",
+      date: new Date().toISOString().slice(0, 10),
       paidBy: currentUserId,
       splitType: "equal" as "equal" | "custom",
       splits: members.map((m) => ({
@@ -198,7 +203,7 @@ function AddExpenseDialog({
         title: value.title,
         amount: parseFloat(value.amount),
         currency: value.currency,
-        date: new Date().toISOString(),
+        date: new Date(value.date).toISOString(),
         group: groupId,
         paidBy: value.paidBy,
         splits,
@@ -212,7 +217,7 @@ function AddExpenseDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button size="icon-lg" className="rounded-full shadow-lg">
+        <Button className="size-12 rounded-full shadow-lg">
           <Plus size={24} />
         </Button>
       </DialogTrigger>
@@ -254,6 +259,21 @@ function AddExpenseDialog({
             )}
           </form.Field>
 
+          <form.Field name="date">
+            {(field) => (
+              <Field>
+                <Label htmlFor={field.name}>Date</Label>
+                <Input
+                  id={field.name}
+                  type="date"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+              </Field>
+            )}
+          </form.Field>
+
           <div className="flex gap-2">
             <form.Field
               name="amount"
@@ -267,7 +287,7 @@ function AddExpenseDialog({
               }}
             >
               {(field) => (
-                <Field className="flex-1">
+                <Field className="flex">
                   <Label htmlFor={field.name}>Amount</Label>
                   <Input
                     id={field.name}

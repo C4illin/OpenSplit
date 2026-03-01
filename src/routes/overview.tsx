@@ -24,7 +24,6 @@ export const Route = createFileRoute('/overview')({
 
 function RouteComponent() {
   const { data: groups, isLoading } = useGroups();
-  console.log(groups);
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
   const createGroup = useCreateGroup();

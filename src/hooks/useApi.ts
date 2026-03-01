@@ -1,6 +1,7 @@
 import type {
   ExpensesResponse,
   GroupsResponse,
+  SplitsResponse,
   UsersResponse,
 } from "@/types/pocketbase-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -80,6 +81,20 @@ export const useExpenses = (groupId: string) => {
   });
 };
 
+export const useSplits = (groupId: string) => {
+  return useQuery({
+    queryKey: ["splits", groupId],
+    queryFn: async () => {
+      return await pb
+        .collection("splits")
+        .getFullList<SplitsResponse>({
+          filter: `expense.group = "${groupId}"`,
+        });
+    },
+    enabled: !!groupId,
+  });
+};
+
 type CreateExpenseData = {
   title: string;
   amount: number;
@@ -118,6 +133,9 @@ export const useCreateExpense = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["expenses", variables.group],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["splits", variables.group],
       });
     },
   });

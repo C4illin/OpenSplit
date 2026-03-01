@@ -9,11 +9,11 @@
     "npm": "^11.9.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typegen": "pocketbase-typegen --db pb_data/data.db --out src/types/pocketbase-types.ts"
+    "typegen": "pocketbase-typegen --db pb_data/data.db --out src/types/pocketbase-types.gen.gen.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

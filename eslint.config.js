@@ -8,7 +8,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["dist", "src/types/pocketbase-types.ts"]),
+  globalIgnores(["dist", "src/types/pocketbase-types.gen.ts"]),
   pluginQuery.configs["flat/recommended"],
   {
     files: ["**/*.{ts,tsx}"],

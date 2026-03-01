@@ -1,5 +1,5 @@
+import type { TypedPocketBase } from "@/types/pocketbase-types.gen";
 import PocketBase from "pocketbase";
-import type { TypedPocketBase } from "@/types/pocketbase-types";
 
 const pocketbaseUrl =
   import.meta.env.VITE_POCKETBASE_URL || "http://localhost:8090";

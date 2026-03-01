@@ -4,7 +4,7 @@ import type {
   InvitesResponse,
   SplitsResponse,
   UsersResponse,
-} from "@/types/pocketbase-types";
+} from "@/types/pocketbase-types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { pb } from "../lib/pocketbase";
 

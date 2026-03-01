@@ -23,6 +23,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import {
   useCreateExpense,
+  useCreateInvite,
   useExpenses,
   useGroup,
   useSplits,
@@ -32,8 +33,8 @@ import type { UsersResponse } from "@/types/pocketbase-types";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Plus } from "lucide-react";
-import { useRef, useState } from "react";
+import { Check, Copy, Plus, UserPlus } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 
 export const Route = createFileRoute("/group/$id")({
   beforeLoad: () => {
@@ -65,7 +66,35 @@ function RouteComponent() {
   const { id } = Route.useParams();
   const { data: group } = useGroup(id);
   const { data: expenses, isLoading } = useExpenses(id);
+  const { data: splits } = useSplits(id);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+
+  // Calculate net balance per member: positive = is owed, negative = owes
+  const balances = useMemo(() => {
+    const members = group?.expand?.members ?? [];
+    if (!expenses || !splits || !members.length) return [];
+
+    const net: Record<string, number> = {};
+    for (const m of members) net[m.id] = 0;
+
+    for (const expense of expenses) {
+      // The payer is owed the full amount
+      net[expense.paidBy] = (net[expense.paidBy] ?? 0) + expense.amount;
+
+      // Each split user owes their share
+      const expenseSplits = splits.filter((s) => s.expense === expense.id);
+      for (const split of expenseSplits) {
+        const owed = (split.percentage / 100) * expense.amount;
+        net[split.user] = (net[split.user] ?? 0) - owed;
+      }
+    }
+
+    return members.map((m) => ({
+      member: m,
+      balance: Math.round((net[m.id] ?? 0) * 100) / 100,
+    }));
+  }, [group?.expand?.members, expenses, splits]);
 
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -81,14 +110,37 @@ function RouteComponent() {
     <>
       <header className="flex items-center justify-between p-4 pb-2">
         <h1 className="text-xl font-semibold">{group?.name ?? "Group"}</h1>
+        <InviteDialog
+          groupId={id}
+          open={inviteDialogOpen}
+          onOpenChange={setInviteDialogOpen}
+        />
       </header>
       <Separator />
 
-      <div>
-        
-
-
-      </div>
+      {balances.length > 0 && (
+        <ul className="flex flex-col gap-1 p-4">
+          {balances.map(({ member, balance }) => (
+            <li key={member.id} className="flex items-center gap-3">
+              <Avatar size="sm">
+                <AvatarImage src={member.avatar} alt={member.name || member.username} />
+                <AvatarFallback>
+                  {(member.name || member.username).charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="flex-1 text-sm truncate">
+                {member.name || member.username}
+              </span>
+              <span
+                className={`text-sm font-medium ${balance > 0 ? "text-green-600 dark:text-green-400" : balance < 0 ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}`}
+              >
+                {balance > 0 ? "+" : ""}
+                {balance.toFixed(2)} {expenses?.[0]?.currency ?? "SEK"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <Separator />
       {isLoading ? (
@@ -158,6 +210,70 @@ function RouteComponent() {
         />
       </div>
     </>
+  );
+}
+
+function InviteDialog({
+  groupId,
+  open,
+  onOpenChange,
+}: {
+  groupId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const createInvite = useCreateInvite();
+  const [copied, setCopied] = useState(false);
+
+  const handleOpen = (isOpen: boolean) => {
+    onOpenChange(isOpen);
+    if (isOpen && !createInvite.data) {
+      createInvite.mutate(groupId);
+    }
+    if (!isOpen) setCopied(false);
+  };
+
+  const inviteUrl = createInvite.data
+    ? `${window.location.origin}/invite/${createInvite.data.token}`
+    : "";
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(inviteUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <UserPlus size={16} />
+          Invite
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Invite to group</DialogTitle>
+        </DialogHeader>
+        {createInvite.isPending ? (
+          <p className="text-muted-foreground text-sm">Generating link...</p>
+        ) : createInvite.isError ? (
+          <p className="text-destructive text-sm">Failed to create invite link.</p>
+        ) : (
+          <div className="flex gap-2">
+            <Input readOnly value={inviteUrl} className="flex-1" />
+            <Button variant="outline" size="icon" onClick={handleCopy}>
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+            </Button>
+          </div>
+        )}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

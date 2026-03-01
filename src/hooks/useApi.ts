@@ -1,6 +1,7 @@
 import type {
   ExpensesResponse,
   GroupsResponse,
+  InvitesResponse,
   SplitsResponse,
   UsersResponse,
 } from "@/types/pocketbase-types";
@@ -85,11 +86,9 @@ export const useSplits = (groupId: string) => {
   return useQuery({
     queryKey: ["splits", groupId],
     queryFn: async () => {
-      return await pb
-        .collection("splits")
-        .getFullList<SplitsResponse>({
-          filter: `expense.group = "${groupId}"`,
-        });
+      return await pb.collection("splits").getFullList<SplitsResponse>({
+        filter: `expense.group = "${groupId}"`,
+      });
     },
     enabled: !!groupId,
   });
@@ -137,6 +136,55 @@ export const useCreateExpense = () => {
       queryClient.invalidateQueries({
         queryKey: ["splits", variables.group],
       });
+    },
+  });
+};
+
+// Invites
+
+export const useCreateInvite = () => {
+  return useMutation({
+    mutationFn: async (groupId: string) => {
+      // Check if an invite already exists for this group
+      try {
+        const existing = await pb
+          .collection("invites")
+          .getFirstListItem<InvitesResponse>(`group = "${groupId}"`);
+        return existing;
+      } catch {
+        // No existing invite, create one
+        return await pb.collection("invites").create<InvitesResponse>({
+          group: groupId,
+          token: crypto.randomUUID(),
+        });
+      }
+    },
+  });
+};
+
+export const useInvitePreview = (token: string) => {
+  return useQuery({
+    queryKey: ["invites", "preview", token],
+    queryFn: async () => {
+      return (await pb.send(`/api/invites/${token}`, {})) as {
+        groupId: string;
+        groupName: string;
+      };
+    },
+    enabled: !!token,
+  });
+};
+
+export const useAcceptInvite = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (token: string) => {
+      return (await pb.send(`/api/invites/${token}/accept`, {
+        method: "POST",
+      })) as { groupId: string };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
 };

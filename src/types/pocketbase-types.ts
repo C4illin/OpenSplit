@@ -13,6 +13,7 @@ export enum Collections {
 	Superusers = "_superusers",
 	Expenses = "expenses",
 	Groups = "groups",
+	Invites = "invites",
 	Splits = "splits",
 	Users = "users",
 }
@@ -115,6 +116,14 @@ export type GroupsRecord = {
 	updated: IsoAutoDateString
 }
 
+export type InvitesRecord = {
+	created: IsoAutoDateString
+	group: RecordIdString
+	id: string
+	token: string
+	updated: IsoAutoDateString
+}
+
 export type SplitsRecord = {
 	created: IsoAutoDateString
 	expense?: RecordIdString
@@ -145,6 +154,7 @@ export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemF
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
 export type ExpensesResponse<Texpand = unknown> = Required<ExpensesRecord> & BaseSystemFields<Texpand>
 export type GroupsResponse<Texpand = unknown> = Required<GroupsRecord> & BaseSystemFields<Texpand>
+export type InvitesResponse<Texpand = unknown> = Required<InvitesRecord> & BaseSystemFields<Texpand>
 export type SplitsResponse<Texpand = unknown> = Required<SplitsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
@@ -158,6 +168,7 @@ export type CollectionRecords = {
 	_superusers: SuperusersRecord
 	expenses: ExpensesRecord
 	groups: GroupsRecord
+	invites: InvitesRecord
 	splits: SplitsRecord
 	users: UsersRecord
 }
@@ -170,6 +181,7 @@ export type CollectionResponses = {
 	_superusers: SuperusersResponse
 	expenses: ExpensesResponse
 	groups: GroupsResponse
+	invites: InvitesResponse
 	splits: SplitsResponse
 	users: UsersResponse
 }

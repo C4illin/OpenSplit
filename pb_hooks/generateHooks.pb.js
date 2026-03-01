@@ -3,7 +3,7 @@
 const generateTypes = (e) => {
   console.log("Collection changed - Running type generation...");
   const cmd = $os.cmd(
-    "npm run",
+    "pnpm",
     "typegen",
   );
   const result = toString(cmd.output());

@@ -1,3 +1,4 @@
+import { Header } from "@/components/header";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,9 +22,7 @@ export const Route = createFileRoute('/overview')({
   component: RouteComponent,
 })
 
-
-function RouteComponent() {
-  const { data: groups, isLoading } = useGroups();
+function GroupDialog() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
   const createGroup = useCreateGroup();
@@ -39,6 +38,67 @@ function RouteComponent() {
       navigate({ to: "/group/$id", params: { id: newGroup.id } });
     },
   });
+  return (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus size={20} />New Group
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create a new group</DialogTitle>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+          >
+            <form.Field
+              name="name"
+              validators={{
+                onChange: ({ value }) =>
+                  value.length < 1 ? 'Group name is required' : undefined,
+              }}
+            >
+              {(field) => (
+                <Field>
+                  <Label htmlFor={field.name}>Group Name</Label>
+                  <Input
+                    id={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
+                  )}
+                </Field>
+              )}
+            </form.Field>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" type="button">Cancel</Button>
+              </DialogClose>
+              <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+                {([canSubmit, isSubmitting]) => (
+                  <Button type="submit" disabled={!canSubmit || isSubmitting}>
+                    {isSubmitting ? "Creating..." : "Create Group"}
+                  </Button>
+                )}
+              </form.Subscribe>
+            </DialogFooter>
+          </form>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
+function RouteComponent() {
+  const { data: groups, isLoading } = useGroups();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -46,68 +106,15 @@ function RouteComponent() {
 
   return (
     <>
-      <header className="flex items-center justify-between mb-6">
+      <Header>
         <h1>Your Groups</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus size={20} />New Group
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create a new group</DialogTitle>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  form.handleSubmit();
-                }}
-              >
-                <form.Field
-                  name="name"
-                  validators={{
-                    onChange: ({ value }) =>
-                      value.length < 1 ? 'Group name is required' : undefined,
-                  }}
-                >
-                  {(field) => (
-                    <Field>
-                      <Label htmlFor={field.name}>Group Name</Label>
-                      <Input
-                        id={field.name}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                      />
-                      {field.state.meta.errors.length > 0 && (
-                        <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
-                      )}
-                    </Field>
-                  )}
-                </form.Field>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline" type="button">Cancel</Button>
-                  </DialogClose>
-                  <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-                    {([canSubmit, isSubmitting]) => (
-                      <Button type="submit" disabled={!canSubmit || isSubmitting}>
-                        {isSubmitting ? "Creating..." : "Create Group"}
-                      </Button>
-                    )}
-                  </form.Subscribe>
-                </DialogFooter>
-              </form>
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
-      </header>
+        <GroupDialog />
+      </Header>
       {!groups?.length ? (
         <p>You are not a member of any groups.</p>
       ) : groups.map((group) => (
         <Link to="/group/$id" params={{ id: group.id }} key={group.id}>
-          <Card className="w-full max-w-sm" key={group.id}>
+          <Card key={group.id}>
             <CardHeader>
               <CardTitle>{group.name}</CardTitle>
             </CardHeader>

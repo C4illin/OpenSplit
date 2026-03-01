@@ -1,3 +1,4 @@
+import { Header } from "@/components/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,7 @@ import {
   useSplits,
 } from "@/hooks/useApi";
 import { pb } from "@/lib/pocketbase";
-import type { UsersResponse } from "@/types/pocketbase-types";
+import type { UsersResponse } from "@/types/pocketbase-types.gen";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -108,15 +109,15 @@ function RouteComponent() {
 
   return (
     <>
-      <header className="flex items-center justify-between p-4 pb-2">
+      <Header>
         <h1 className="text-xl font-semibold">{group?.name ?? "Group"}</h1>
         <InviteDialog
           groupId={id}
           open={inviteDialogOpen}
           onOpenChange={setInviteDialogOpen}
         />
-      </header>
-      <Separator />
+      </Header>
+
 
       {balances.length > 0 && (
         <ul className="flex flex-col gap-1 p-4">

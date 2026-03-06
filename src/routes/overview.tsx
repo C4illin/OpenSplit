@@ -6,6 +6,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Wrapper } from "@/components/wrapper";
 import { useCreateGroup, useGroups } from '@/hooks/useApi';
 import { pb } from '@/lib/pocketbase';
 import { useForm } from '@tanstack/react-form';
@@ -110,30 +111,32 @@ function RouteComponent() {
         <h1>Your Groups</h1>
         <GroupDialog />
       </Header>
-      {!groups?.length ? (
-        <p>You are not a member of any groups.</p>
-      ) : groups.map((group) => (
-        <Link to="/group/$id" params={{ id: group.id }} key={group.id}>
-          <Card key={group.id}>
-            <CardHeader>
-              <CardTitle>{group.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AvatarGroup>
-                {group.expand?.members?.map((member) => (
-                  <Avatar>
-                    <AvatarImage src={member.avatar} alt={member.name} />
-                    <AvatarFallback>{member.name[0] + (member.name.split(" ").pop() ?? "")[0]}</AvatarFallback>
-                  </Avatar>
-                ))}
-              </AvatarGroup>
-            </CardContent>
-            <CardFooter>
-              {group.expand?.members?.length ? `${group.expand.members.length} member${group.expand.members.length > 1 ? 's' : ''}` : 'No members yet'}
-            </CardFooter>
-          </Card>
-        </Link>
-      ))}
+      <Wrapper>
+        {!groups?.length ? (
+          <p>You are not a member of any groups.</p>
+        ) : groups.map((group) => (
+          <Link to="/group/$id" params={{ id: group.id }} key={group.id}>
+            <Card key={group.id}>
+              <CardHeader>
+                <CardTitle>{group.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AvatarGroup>
+                  {group.expand?.members?.map((member) => (
+                    <Avatar>
+                      <AvatarImage src={member.avatar} alt={member.name} />
+                      <AvatarFallback>{member.name[0] + (member.name.split(" ").pop() ?? "")[0]}</AvatarFallback>
+                    </Avatar>
+                  ))}
+                </AvatarGroup>
+              </CardContent>
+              <CardFooter>
+                {group.expand?.members?.length ? `${group.expand.members.length} member${group.expand.members.length > 1 ? 's' : ''}` : 'No members yet'}
+              </CardFooter>
+            </Card>
+          </Link>
+        ))}
+      </Wrapper>
     </>
   );
 }

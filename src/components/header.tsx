@@ -3,15 +3,16 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
-type HeaderProps = {
+type Props = {
   children: ReactNode;
   className?: string;
 };
 
-export const Header = ({ children, className }: HeaderProps) => {
+export const Header = ({ children, className }: Props) => {
   return (
     <header className={cn(`
-      mx-2 mt-2 mb-4 flex w-full items-center gap-2 rounded-2xl bg-card p-4
+      mx-auto mt-2 mb-4 flex w-full max-w-xl items-center gap-2 rounded-2xl
+      bg-card p-4
     `, className)}>
       <Link to="/overview">
         <ChevronLeft className="shrink-0" />

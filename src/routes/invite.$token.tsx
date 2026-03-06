@@ -45,7 +45,7 @@ function RouteComponent() {
   if (isError || !preview) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-sm">
+        <Card className="w-full max-w-xl">
           <CardHeader>
             <CardTitle>Invalid invite</CardTitle>
           </CardHeader>
@@ -66,7 +66,7 @@ function RouteComponent() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-xl">
         <CardHeader>
           <CardTitle>Join {preview.groupName}?</CardTitle>
         </CardHeader>

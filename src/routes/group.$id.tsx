@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Wrapper } from "@/components/wrapper";
 import {
   useCreateExpense,
   useCreateInvite,
@@ -55,6 +56,8 @@ function formatDate(dateStr: string) {
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays > 0) return `In ${diffDays} days`;
   return date.toLocaleDateString();
 }
 
@@ -118,112 +121,115 @@ function RouteComponent() {
         />
       </Header>
 
-
-      {balances.length > 0 && (
-        <ul className="flex flex-col gap-1 p-4">
-          {balances.map(({ member, balance }) => (
-            <li key={member.id} className="flex items-center gap-3">
-              <Avatar size="sm">
-                <AvatarImage src={member.avatar} alt={member.name || member.username} />
-                <AvatarFallback>
-                  {(member.name || member.username).charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="flex-1 truncate text-sm">
-                {member.name || member.username}
-              </span>
-              <span
-                className={`
-                  text-sm font-medium
-                  ${balance > 0 ? `
-                    text-green-600
-                    dark:text-green-400
-                  ` : balance < 0 ? `
-                    text-red-600
-                    dark:text-red-400
-                  ` : `text-muted-foreground`}
-                `}
-              >
-                {balance > 0 ? "+" : ""}
-                {balance.toFixed(2)} {expenses?.[0]?.currency ?? "SEK"}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <Wrapper>
+        {balances.length > 0 && (
+          <ul className="flex flex-col gap-1 p-4">
+            {balances.map(({ member, balance }) => (
+              <li key={member.id} className="flex items-center gap-3">
+                <Avatar size="sm">
+                  <AvatarImage src={member.avatar} alt={member.name || member.username} />
+                  <AvatarFallback>
+                    {(member.name || member.username).charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="flex-1 truncate text-sm">
+                  {member.name || member.username}
+                </span>
+                <span
+                  className={`
+                    text-sm font-medium
+                    ${balance > 0 ? `
+                      text-green-600
+                      dark:text-green-400
+                    ` : balance < 0 ? `
+                      text-red-600
+                      dark:text-red-400
+                    ` : `text-muted-foreground`}
+                  `}
+                >
+                  {balance > 0 ? "+" : ""}
+                  {balance.toFixed(2)} {expenses?.[0]?.currency ?? "SEK"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Wrapper>
 
       <Separator />
-      {isLoading ? (
-        <p className="py-8 text-center text-muted-foreground">Loading...</p>
-      ) : !expenses?.length ? (
-        <p className="py-8 text-center text-muted-foreground">
-          No expenses yet. Tap + to add one.
-        </p>
-      ) : (
-        <div ref={parentRef} className="px-4">
-          <div
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
-              position: "relative",
-              width: "100%",
-            }}
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-              const expense = expenses[virtualItem.index];
-              return (
-                <div
-                  key={expense.id}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: `${virtualItem.size}px`,
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  <Card className="my-2">
-                    <CardHeader className="px-4 py-3">
-                      <CardTitle className="
-                        flex items-center justify-between text-base
-                      ">
-                        <span>{expense.title}</span>
-                        <span className="font-semibold">
-                          {formatAmount(expense.amount, expense.currency)}
-                        </span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3">
-                      <div className="
-                        flex items-center justify-between text-sm
-                        text-muted-foreground
-                      ">
-                        <span>
-                          Paid by{" "}
-                          {expense.expand?.paidBy?.name ??
-                            expense.expand?.paidBy?.username ??
-                            "Unknown"}
-                        </span>
-                        <span>{formatDate(expense.date)}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              );
-            })}
+      <Wrapper>
+        {isLoading ? (
+          <p className="py-8 text-center text-muted-foreground">Loading...</p>
+        ) : !expenses?.length ? (
+          <p className="py-8 text-center text-muted-foreground">
+            No expenses yet. Tap + to add one.
+          </p>
+        ) : (
+          <div ref={parentRef} className="px-4">
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                position: "relative",
+                width: "100%",
+              }}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                const expense = expenses[virtualItem.index];
+                return (
+                  <div
+                    key={expense.id}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: `${virtualItem.size}px`,
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    <Card className="my-2">
+                      <CardHeader className="px-4 py-3">
+                        <CardTitle className="
+                          flex items-center justify-between text-base
+                        ">
+                          <span>{expense.title}</span>
+                          <span className="font-semibold">
+                            {formatAmount(expense.amount, expense.currency)}
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-4 pt-0 pb-3">
+                        <div className="
+                          flex items-center justify-between text-sm
+                          text-muted-foreground
+                        ">
+                          <span>
+                            Paid by{" "}
+                            {expense.expand?.paidBy?.name ??
+                              expense.expand?.paidBy?.username ??
+                              "Unknown"}
+                          </span>
+                          <span>{formatDate(expense.date)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Wrapper>
 
 
-      <div className="sticky bottom-4 left-4">
+      <Wrapper className="sticky bottom-4 left-4">
         <AddExpenseDialog
           groupId={id}
           members={group?.expand?.members ?? []}
           open={dialogOpen}
           onOpenChange={setDialogOpen}
         />
-      </div>
+      </Wrapper>
     </>
   );
 }

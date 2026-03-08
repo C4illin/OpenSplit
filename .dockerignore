@@ -1,0 +1,6 @@
+node_modules
+dist
+pb_data
+.git
+.tanstack
+.vscode

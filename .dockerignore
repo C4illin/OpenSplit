@@ -4,3 +4,4 @@ pb_data
 .git
 .tanstack
 .vscode
+pb_hooks/generateHooks.pb.js

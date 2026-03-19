@@ -10,7 +10,7 @@ import {
   useGroup,
   useSplits
 } from "@/hooks/useApi";
-import { pb } from "@/lib/pocketbase";
+import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Plus } from "lucide-react";
@@ -105,7 +105,7 @@ function RouteComponent() {
             {balances.map(({ member, balance }) => (
               <li key={member.id} className="flex items-center gap-3">
                 <Avatar size="sm">
-                  <AvatarImage src={member.avatar} alt={member.name || member.username} />
+                  <AvatarImage src={getAvatarUrl(member, member.avatar)} alt={member.name || member.username} />
                   <AvatarFallback>
                     {(member.name || member.username).charAt(0).toUpperCase()}
                   </AvatarFallback>

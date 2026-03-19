@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Wrapper } from "@/components/Wrapper";
 import { useCreateExpense, useGroup } from "@/hooks/useApi";
 import { useAppForm, withForm } from "@/hooks/useAppForm";
-import { pb } from "@/lib/pocketbase";
+import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import { cn } from "@/lib/utils";
 import {
   createFileRoute,
@@ -304,7 +304,7 @@ const TitleStep = withForm({
 const SplitStep = withForm({
   defaultValues: formDefaults,
   props: {
-    members: [] as { id: string; name: string; username: string; avatar: string }[],
+    members: [] as { id: string; collectionId: string; collectionName: string; name: string; username: string; avatar: string }[],
     currentUserId: "",
   },
   render: ({ form, members, currentUserId }) => (
@@ -335,7 +335,7 @@ const SplitStep = withForm({
                 >
                   <Avatar size="sm">
                     <AvatarImage
-                      src={m.avatar}
+                      src={getAvatarUrl(m, m.avatar)}
                       alt={m.name || m.username}
                     />
                     <AvatarFallback>
@@ -404,7 +404,7 @@ const SplitStep = withForm({
                     ">
                       <Avatar size="sm">
                         <AvatarImage
-                          src={member.avatar}
+                          src={getAvatarUrl(member, member.avatar)}
                           alt={member.name || member.username}
                         />
                         <AvatarFallback>

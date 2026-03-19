@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wrapper } from "@/components/Wrapper";
 import { useCreateGroup, useGroups } from '@/hooks/useApi';
-import { pb } from '@/lib/pocketbase';
+import { getAvatarUrl, pb } from '@/lib/pocketbase';
 import { useForm } from '@tanstack/react-form';
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { Plus } from "lucide-react";
@@ -123,8 +123,8 @@ function RouteComponent() {
               <CardContent>
                 <AvatarGroup>
                   {group.expand?.members?.map((member) => (
-                    <Avatar>
-                      <AvatarImage src={member.avatar} alt={member.name} />
+                    <Avatar key={member.id}>
+                      <AvatarImage src={getAvatarUrl(member, member.avatar)} alt={member.name} />
                       <AvatarFallback>{member.name[0] + (member.name.split(" ").pop() ?? "")[0]}</AvatarFallback>
                     </Avatar>
                   ))}

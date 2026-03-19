@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OverviewRouteImport } from './routes/overview'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
-import { Route as GroupIdRouteImport } from './routes/group.$id'
+import { Route as ExpenseIdRouteImport } from './routes/expense.$id'
+import { Route as GroupIdIndexRouteImport } from './routes/group.$id/index'
+import { Route as GroupIdAddRouteImport } from './routes/group.$id/add'
 
 const OverviewRoute = OverviewRouteImport.update({
   id: '/overview',
@@ -29,44 +31,81 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GroupIdRoute = GroupIdRouteImport.update({
-  id: '/group/$id',
-  path: '/group/$id',
+const ExpenseIdRoute = ExpenseIdRouteImport.update({
+  id: '/expense/$id',
+  path: '/expense/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupIdIndexRoute = GroupIdIndexRouteImport.update({
+  id: '/group/$id/',
+  path: '/group/$id/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupIdAddRoute = GroupIdAddRouteImport.update({
+  id: '/group/$id/add',
+  path: '/group/$id/add',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/overview': typeof OverviewRoute
-  '/group/$id': typeof GroupIdRoute
+  '/expense/$id': typeof ExpenseIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id/': typeof GroupIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/overview': typeof OverviewRoute
-  '/group/$id': typeof GroupIdRoute
+  '/expense/$id': typeof ExpenseIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id': typeof GroupIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/overview': typeof OverviewRoute
-  '/group/$id': typeof GroupIdRoute
+  '/expense/$id': typeof ExpenseIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id/': typeof GroupIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/overview' | '/group/$id' | '/invite/$token'
+  fullPaths:
+    | '/'
+    | '/overview'
+    | '/expense/$id'
+    | '/invite/$token'
+    | '/group/$id/add'
+    | '/group/$id/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/overview' | '/group/$id' | '/invite/$token'
-  id: '__root__' | '/' | '/overview' | '/group/$id' | '/invite/$token'
+  to:
+    | '/'
+    | '/overview'
+    | '/expense/$id'
+    | '/invite/$token'
+    | '/group/$id/add'
+    | '/group/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/overview'
+    | '/expense/$id'
+    | '/invite/$token'
+    | '/group/$id/add'
+    | '/group/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OverviewRoute: typeof OverviewRoute
-  GroupIdRoute: typeof GroupIdRoute
+  ExpenseIdRoute: typeof ExpenseIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  GroupIdAddRoute: typeof GroupIdAddRoute
+  GroupIdIndexRoute: typeof GroupIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,11 +131,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/group/$id': {
-      id: '/group/$id'
+    '/expense/$id': {
+      id: '/expense/$id'
+      path: '/expense/$id'
+      fullPath: '/expense/$id'
+      preLoaderRoute: typeof ExpenseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group/$id/': {
+      id: '/group/$id/'
       path: '/group/$id'
-      fullPath: '/group/$id'
-      preLoaderRoute: typeof GroupIdRouteImport
+      fullPath: '/group/$id/'
+      preLoaderRoute: typeof GroupIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group/$id/add': {
+      id: '/group/$id/add'
+      path: '/group/$id/add'
+      fullPath: '/group/$id/add'
+      preLoaderRoute: typeof GroupIdAddRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -105,8 +158,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OverviewRoute: OverviewRoute,
-  GroupIdRoute: GroupIdRoute,
+  ExpenseIdRoute: ExpenseIdRoute,
   InviteTokenRoute: InviteTokenRoute,
+  GroupIdAddRoute: GroupIdAddRoute,
+  GroupIdIndexRoute: GroupIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

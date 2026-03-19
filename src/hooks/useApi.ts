@@ -140,6 +140,16 @@ export const useCreateExpense = () => {
   });
 };
 
+export const useGetExpense = (expenseId: string) => {
+  return useQuery({
+    queryKey: ["expense", expenseId],
+    queryFn: async () => {
+      return await pb.collection("expenses").getOne(expenseId);
+    },
+    enabled: !!expenseId,
+  });
+};
+
 // Invites
 
 export const useCreateInvite = () => {

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Wrapper } from '@/components/wrapper';
+import { Wrapper } from '@/components/Wrapper';
 import { createFileRoute } from '@tanstack/react-router';
 import { useAuth } from "../hooks/useAuth";
 

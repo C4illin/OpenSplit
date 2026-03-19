@@ -12,7 +12,7 @@ import {
   redirect,
   useNavigate,
 } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Percent } from "lucide-react";
 import { useState } from "react";
 
 const CURRENCIES = ["SEK", "EUR", "USD", "GBP", "NOK", "DKK"];
@@ -148,19 +148,23 @@ function AddExpensePage() {
           </Button>
           {isLast ? (
             <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              selector={(state) => [state.canSubmit, state.isSubmitting, state.values.splits, state.values.splitType] as const}
             >
-              {([canSubmit, isSubmitting]) => (
-                <Button
-                  type="submit"
-                  disabled={!canSubmit || isSubmitting}
-                  size="lg"
-                  className="flex-1"
-                >
-                  <Check size={16} />
-                  {isSubmitting ? "Adding..." : "Add expense"}
-                </Button>
-              )}
+              {([canSubmit, isSubmitting, splits, splitType]) => {
+                const totalPct = splits.reduce((s, x) => s + x.percentage, 0);
+                const invalidSplit = splitType === "custom" && Math.abs(totalPct - 100) > 0.1;
+                return (
+                  <Button
+                    type="submit"
+                    disabled={!canSubmit || isSubmitting || invalidSplit}
+                    size="lg"
+                    className="flex-1"
+                  >
+                    <Check size={16} />
+                    {isSubmitting ? "Adding..." : "Add expense"}
+                  </Button>
+                );
+              }}
             </form.Subscribe>
           ) : (
             <form.Subscribe
@@ -307,137 +311,281 @@ const SplitStep = withForm({
     members: [] as { id: string; collectionId: string; collectionName: string; name: string; username: string; avatar: string }[],
     currentUserId: "",
   },
-  render: ({ form, members, currentUserId }) => (
-    <div className="flex w-full flex-col gap-6">
-      {/* Paid by — tappable member list */}
-      <div className="flex flex-col gap-2">
-        <p className="text-sm text-muted-foreground">Paid by</p>
-        <form.Field name="paidBy">
-          {(field) => (
-            <div className="flex flex-wrap gap-2">
-              {members.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => field.handleChange(m.id)}
-                  className={cn(
-                    `
-                      flex items-center gap-2 rounded-full border px-3 py-1.5
-                      text-sm transition-colors
-                    `,
-                    field.state.value === m.id
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : `
-                        border-border text-muted-foreground
-                        hover:bg-muted
-                      `
-                  )}
-                >
-                  <Avatar size="sm">
-                    <AvatarImage
-                      src={getAvatarUrl(m, m.avatar)}
-                      alt={m.name || m.username}
-                    />
-                    <AvatarFallback>
-                      {(m.name || m.username).charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {m.name || m.username}
-                  {m.id === currentUserId && field.state.value !== m.id && (
-                    <span className="text-xs text-muted-foreground">(you)</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </form.Field>
-      </div>
+  render: function SplitStepRender({ form, members, currentUserId }) {
+    const [displayMode, setDisplayMode] = useState<"percentage" | "value">("percentage");
+    const [locked, setLocked] = useState<Set<number>>(() => new Set());
+    const totalAmount = parseFloat(form.state.values.amount) || 0;
 
-      {/* Split type */}
-      <div className="flex flex-col gap-2">
-        <p className="text-sm text-muted-foreground">Split</p>
-        <form.Field name="splitType">
-          {(field) => (
-            <div className="flex gap-2">
-              {[
-                { value: "equal" as const, label: "Equal" },
-                { value: "custom" as const, label: "Custom %" },
-              ].map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => field.handleChange(opt.value)}
-                  className={cn(
-                    `
-                      flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium
-                      transition-colors
-                    `,
-                    field.state.value === opt.value
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : `
-                        border-border text-muted-foreground
-                        hover:bg-muted
-                      `
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </form.Field>
-      </div>
+    const getUnlocked = (lockedSet: Set<number>) =>
+      members.map((_, i) => i).filter((i) => !lockedSet.has(i));
 
-      {/* Custom percentages */}
-      <form.Subscribe selector={(s) => s.values.splitType}>
-        {(splitType) =>
-          splitType === "custom" && (
-            <div className="flex flex-col gap-2">
-              {members.map((member, i) => (
-                <form.Field
-                  key={member.id}
-                  name={`splits[${i}].percentage`}
-                >
-                  {(field) => (
-                    <div className="
-                      flex items-center gap-3 rounded-lg border px-3 py-2
-                    ">
+    const redistributeUnlocked = (lockedSet: Set<number>) => {
+      const splits = form.state.values.splits;
+      const lockedTotal = splits.reduce(
+        (sum, s, i) => (lockedSet.has(i) ? sum + s.percentage : sum),
+        0,
+      );
+      const unlocked = getUnlocked(lockedSet);
+      const remainder = Math.max(0, 100 - lockedTotal);
+      const perUnlocked = unlocked.length > 0 ? remainder / unlocked.length : 0;
+
+      for (const i of unlocked) {
+        form.setFieldValue(
+          `splits[${i}].percentage`,
+          Math.round(perUnlocked * 100) / 100,
+        );
+      }
+    };
+
+    const handleSplitChange = (index: number, rawValue: number) => {
+      const newPct =
+        displayMode === "value" && totalAmount > 0
+          ? (rawValue / totalAmount) * 100
+          : rawValue;
+      const value = Math.max(0, newPct);
+
+      form.setFieldValue(`splits[${index}].percentage`, value);
+
+      const newLocked = new Set(locked).add(index);
+      setLocked(newLocked);
+
+      // Redistribute remainder among unlocked members
+      const splits = form.state.values.splits;
+      const lockedTotal = splits.reduce((sum, s, i) => {
+        if (i === index) return sum + value;
+        if (newLocked.has(i)) return sum + s.percentage;
+        return sum;
+      }, 0);
+
+      const unlocked = getUnlocked(newLocked);
+      const remainder = Math.max(0, 100 - lockedTotal);
+      const perUnlocked = unlocked.length > 0 ? remainder / unlocked.length : 0;
+
+      for (const i of unlocked) {
+        form.setFieldValue(
+          `splits[${i}].percentage`,
+          Math.round(perUnlocked * 100) / 100,
+        );
+      }
+    };
+
+    const toggleLock = (index: number) => {
+      setLocked((prev) => {
+        const next = new Set(prev);
+        if (next.has(index)) {
+          next.delete(index);
+        } else {
+          next.add(index);
+        }
+        redistributeUnlocked(next);
+        return next;
+      });
+    };
+
+    const formatValue = (pct: number) => {
+      if (displayMode === "value") {
+        return (totalAmount * pct / 100).toFixed(2);
+      }
+      return `${Math.round(pct * 10) / 10}`;
+    };
+
+    return (
+      <div className="flex w-full flex-col gap-6">
+        {/* Paid by */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">Paid by</p>
+          <form.Field name="paidBy">
+            {(field) => (
+              <div className="flex flex-wrap gap-2">
+                {members.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => field.handleChange(m.id)}
+                    className={cn(
+                      `
+                        flex items-center gap-2 rounded-full border px-3 py-1.5
+                        text-sm transition-colors
+                      `,
+                      field.state.value === m.id
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : `
+                          border-border text-muted-foreground
+                          hover:bg-muted
+                        `,
+                    )}
+                  >
+                    <Avatar size="sm">
+                      <AvatarImage src={getAvatarUrl(m, m.avatar)} alt={m.name || m.username} />
+                      <AvatarFallback>{(m.name || m.username).charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    {m.name || m.username}
+                    {m.id === currentUserId && field.state.value !== m.id && (
+                      <span className="text-xs text-muted-foreground">(you)</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </form.Field>
+        </div>
+
+        {/* Split type */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">Split</p>
+          <form.Field name="splitType">
+            {(field) => (
+              <div className="flex gap-2">
+                {[
+                  { value: "equal" as const, label: "Equal" },
+                  { value: "custom" as const, label: "Custom" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      field.handleChange(opt.value);
+                      if (opt.value === "equal") {
+                        setLocked(new Set());
+                        const pct = members.length > 0 ? 100 / members.length : 0;
+                        for (let i = 0; i < members.length; i++) {
+                          form.setFieldValue(`splits[${i}].percentage`, pct);
+                        }
+                      }
+                    }}
+                    className={cn(
+                      `
+                        flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium
+                        transition-colors
+                      `,
+                      field.state.value === opt.value
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : `
+                          border-border text-muted-foreground
+                          hover:bg-muted
+                        `,
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </form.Field>
+        </div>
+
+        {/* Custom split editor */}
+        <form.Subscribe selector={(s) => [s.values.splitType, s.values.splits] as const}>
+          {([splitType, splits]) => {
+            if (splitType !== "custom") return null;
+
+            return (
+              <div className="flex flex-col gap-2">
+                {/* Display mode toggle */}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setDisplayMode((m) => (m === "percentage" ? "value" : "percentage"))}
+                    className="
+                      flex items-center gap-1 rounded-md px-2 py-1 text-xs
+                      text-muted-foreground transition-colors
+                      hover:bg-muted
+                    "
+                  >
+                    <Percent size={12} />
+                    {displayMode === "percentage" ? "Show values" : "Show %"}
+                  </button>
+                </div>
+
+                {members.map((member, i) => {
+                  const pct = splits[i]?.percentage ?? 0;
+                  const isLocked = locked.has(i);
+                  const unlocked = members.map((_, j) => j).filter((j) => !locked.has(j));
+                  const isSoleRemainder = !isLocked && unlocked.length === 1;
+
+                  return (
+                    <div
+                      key={member.id}
+                      className={cn(
+                        `
+                          flex items-center gap-3 rounded-lg border px-3 py-2
+                          transition-colors
+                        `,
+                        isSoleRemainder
+                          ? `
+                            border-dashed border-muted-foreground/20 bg-muted/20
+                            opacity-60
+                          `
+                          : isLocked
+                            ? "border-foreground/20 bg-foreground/5"
+                            : "border-border",
+                      )}
+                    >
                       <Avatar size="sm">
-                        <AvatarImage
-                          src={getAvatarUrl(member, member.avatar)}
-                          alt={member.name || member.username}
-                        />
-                        <AvatarFallback>
-                          {(member.name || member.username)
-                            .charAt(0)
-                            .toUpperCase()}
-                        </AvatarFallback>
+                        <AvatarImage src={getAvatarUrl(member, member.avatar)} alt={member.name || member.username} />
+                        <AvatarFallback>{(member.name || member.username).charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
-                      <span className="flex-1 truncate text-sm">
+                      <span className={cn(
+                        "flex-1 truncate text-sm",
+                        isLocked && "text-foreground",
+                        isSoleRemainder && "text-muted-foreground",
+                      )}>
                         {member.name || member.username}
                       </span>
-                      <Input
-                        className="w-16 text-center"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={field.state.value}
-                        onChange={(e) =>
-                          field.handleChange(
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                      />
-                      <span className="text-sm text-muted-foreground">%</span>
+
+                      {isSoleRemainder ? (
+                        <span className="
+                          w-16 text-center text-sm text-muted-foreground
+                          tabular-nums
+                        ">
+                          {formatValue(pct)}
+                        </span>
+                      ) : (
+                        <Input
+                          className={cn(
+                            `
+                              w-16 [appearance:textfield] text-center
+                              tabular-nums
+                              [&::-webkit-inner-spin-button]:appearance-none
+                              [&::-webkit-outer-spin-button]:appearance-none
+                            `,
+                            isLocked && "font-medium text-foreground",
+                          )}
+                          type="number"
+                          min="0"
+                          step={displayMode === "percentage" ? "1" : "0.01"}
+                          value={formatValue(pct)}
+                          onChange={(e) => handleSplitChange(i, parseFloat(e.target.value) || 0)}
+                          onFocus={() => {
+                            if (isLocked) toggleLock(i);
+                          }}
+                        />
+                      )}
+
+                      <span className="w-4 text-xs text-muted-foreground">
+                        {displayMode === "percentage" ? "%" : ""}
+                      </span>
                     </div>
-                  )}
-                </form.Field>
-              ))}
-            </div>
-          )
-        }
-      </form.Subscribe>
-    </div>
-  ),
+                  );
+                })}
+
+                {/* Total */}
+                <div className="
+                  flex justify-between px-3 py-1.5 text-xs font-medium
+                  text-muted-foreground
+                ">
+                  <span>Total</span>
+                  <span>
+                    {displayMode === "percentage"
+                      ? `${Math.round(splits.reduce((s, x) => s + x.percentage, 0) * 10) / 10}%`
+                      : totalAmount.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            );
+          }}
+        </form.Subscribe>
+      </div>
+    );
+  },
 });

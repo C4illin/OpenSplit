@@ -9,11 +9,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores([
-    "dist",
-    "src/types/pocketbase-types.gen.ts",
-    "src/components/ui",
-  ]),
+  globalIgnores(["dist", "**/*.gen.ts", "src/components/ui/*"]),
   pluginQuery.configs["flat/recommended"],
   {
     files: ["**/*.{ts,tsx}"],
@@ -24,6 +20,12 @@ export default defineConfig([
       reactRefresh.configs.vite,
       eslintPluginBetterTailwindcss.configs.recommended,
     ],
+    rules: {
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowExportNames: ["Route"] },
+      ],
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,

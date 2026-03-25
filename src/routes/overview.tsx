@@ -73,7 +73,9 @@ function GroupDialog() {
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
                   {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
+                    <p className="text-sm text-destructive">
+                      {field.state.meta.errors.join(', ')}
+                    </p>
                   )}
                 </Field>
               )}

@@ -311,7 +311,7 @@ const SplitStep = withForm({
     members: [] as { id: string; collectionId: string; collectionName: string; name: string; username: string; avatar: string }[],
     currentUserId: "",
   },
-  render: function SplitStepRender({ form, members, currentUserId }) {
+  render: function SplitStepRender({ form, members }) {
     const [displayMode, setDisplayMode] = useState<"percentage" | "value">("percentage");
     const [locked, setLocked] = useState<Set<number>>(() => new Set());
     const totalAmount = parseFloat(form.state.values.amount) || 0;
@@ -420,9 +420,6 @@ const SplitStep = withForm({
                       <AvatarFallback>{(m.name || m.username).charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     {m.name || m.username}
-                    {m.id === currentUserId && field.state.value !== m.id && (
-                      <span className="text-xs text-muted-foreground">(you)</span>
-                    )}
                   </button>
                 ))}
               </div>

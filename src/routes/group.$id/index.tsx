@@ -165,7 +165,7 @@ function RouteComponent() {
                       transform: `translateY(${virtualItem.start}px)`,
                     }}
                   >
-                    <Link to="/expense/$id" params={{ id: expense.id }}>
+                    <Link to="/group/$id/expense/$expenseId" params={{ id: group?.id ?? "", expenseId: expense.id ?? "" }}>
                       <Card>
                         <CardHeader className="px-4 py-3">
                           <CardTitle className="

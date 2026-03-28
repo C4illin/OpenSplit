@@ -140,13 +140,95 @@ export const useCreateExpense = () => {
   });
 };
 
+type GetExpenseExpand = {
+  "splits(expense)"?: SplitsResponse[];
+};
+
 export const useGetExpense = (expenseId: string) => {
   return useQuery({
     queryKey: ["expense", expenseId],
     queryFn: async () => {
-      return await pb.collection("expenses").getOne(expenseId);
+      return await pb
+        .collection("expenses")
+        .getOne<ExpensesResponse<GetExpenseExpand>>(expenseId, {
+          expand: "splits(expense)",
+        });
     },
     enabled: !!expenseId,
+  });
+};
+
+type UpdateExpenseData = {
+  id: string;
+  title: string;
+  amount: number;
+  currency: string;
+  group: string;
+  paidBy: string;
+  splits: { user: string; percentage: number }[];
+  existingSplitIds: string[];
+};
+
+export const useUpdateExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: UpdateExpenseData) => {
+      const expense = await pb.collection("expenses").update(data.id, {
+        title: data.title,
+        amount: data.amount,
+        currency: data.currency,
+        paidBy: data.paidBy,
+      });
+
+      // Delete old splits
+      await Promise.all(
+        data.existingSplitIds.map((id) => pb.collection("splits").delete(id)),
+      );
+
+      // Create new splits
+      await Promise.all(
+        data.splits.map((split) =>
+          pb.collection("splits").create({
+            expense: data.id,
+            user: split.user,
+            percentage: split.percentage,
+          }),
+        ),
+      );
+
+      return expense;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["expense", variables.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["expenses", variables.group],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["splits", variables.group],
+      });
+    },
+  });
+};
+
+export const useDeleteExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { id: string; group: string; splitIds: string[] }) => {
+      await Promise.all(
+        data.splitIds.map((id) => pb.collection("splits").delete(id)),
+      );
+      await pb.collection("expenses").delete(data.id);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["expenses", variables.group],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["splits", variables.group],
+      });
+    },
   });
 };
 

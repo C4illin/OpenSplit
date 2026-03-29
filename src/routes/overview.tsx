@@ -113,7 +113,7 @@ function RouteComponent() {
         <h1>Your Groups</h1>
         <GroupDialog />
       </Header>
-      <Wrapper>
+      <Wrapper className="flex gap-4 flex-col">
         {!groups?.length ? (
           <p>You are not a member of any groups.</p>
         ) : groups.map((group) => (

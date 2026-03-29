@@ -119,7 +119,7 @@ function AddExpensePage() {
         </div>
 
         {/* Bottom nav */}
-        <div className="sticky bottom-0 flex gap-3 pt-4 pb-6">
+        <div className="flex gap-3 pt-4 pb-6">
           <Button
             variant="outline"
             type="button"

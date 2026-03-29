@@ -202,10 +202,10 @@ function RouteComponent() {
       </Wrapper>
 
 
-      <Wrapper className="sticky bottom-8 left-8">
+      <Wrapper className="sticky flex items-center justify-center bottom-16">
         <Link to="/group/$id/add" params={{ id }}>
           <Button className="rounded-full shadow-lg" size="lg">
-            <Plus size={32}/>
+            <Plus size={32} />
             Add expense
           </Button>
         </Link>

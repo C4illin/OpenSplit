@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { withForm } from "@/hooks/useAppForm";
 import { getAvatarUrl } from "@/lib/pocketbase";
 import { cn } from "@/lib/utils";
-import { Check, Percent, RotateCcw } from "lucide-react";
+import { Check, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 export const expenseFormDefaults = {

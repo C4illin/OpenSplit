@@ -26,3 +26,4 @@ dev-dist
 *.sw?
 pb_data
 .tanstack
+pb_schema.json

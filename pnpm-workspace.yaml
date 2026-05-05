@@ -1,0 +1,4 @@
+allowBuilds:
+  esbuild: false
+  msw: false
+  sqlite3: false

@@ -11,6 +11,7 @@ import {
   useSplits
 } from "@/hooks/useApi";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
+import type { IsoDateString } from "@/types/pocketbase-types.gen";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Plus } from "lucide-react";
@@ -25,17 +26,8 @@ export const Route = createFileRoute("/group/$id/")({
   component: RouteComponent,
 });
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: IsoDateString) {
   const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  if (diffDays > 0) return `In ${diffDays} days`;
   return date.toLocaleDateString();
 }
 

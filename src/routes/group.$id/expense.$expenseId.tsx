@@ -42,6 +42,7 @@ function EditExpensePage() {
       title: expense?.title ?? "",
       amount: expense?.amount?.toString() ?? "",
       currency: expense?.currency ?? "SEK",
+      date: expense?.date ? expense.date.slice(0, 16) : "",
       paidBy: expense?.paidBy ?? currentUserId,
       splits: members.map((m) => {
         const existing = existingSplits.find((s) => s.user === m.id);
@@ -63,6 +64,7 @@ function EditExpensePage() {
         title: value.title,
         amount: parseFloat(value.amount),
         currency: value.currency,
+        date: new Date(value.date).toISOString(),
         group: id,
         paidBy: value.paidBy,
         splits: value.splits,
@@ -203,6 +205,38 @@ function EditExpensePage() {
                     {c}
                   </Badge>
                 ))}
+              </div>
+            )}
+          </form.Field>
+        </div>
+
+        {/* Date */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">Date</p>
+          <form.Field
+            name="date"
+            validators={{
+              onChange: ({ value }) =>
+                !value ? "Date is required" : undefined,
+            }}
+          >
+            {(field) => (
+              <div className="flex flex-col gap-1">
+                <input
+                  type="datetime-local"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  className="
+                    w-full bg-transparent text-base outline-none
+                    placeholder:text-muted-foreground/40
+                  "
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-sm text-destructive">
+                    {field.state.meta.errors.join(", ")}
+                  </p>
+                )}
               </div>
             )}
           </form.Field>

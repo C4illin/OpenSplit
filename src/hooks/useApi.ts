@@ -163,6 +163,7 @@ type UpdateExpenseData = {
   title: string;
   amount: number;
   currency: string;
+  date: string;
   group: string;
   paidBy: string;
   splits: { user: string; percentage: number }[];
@@ -177,6 +178,7 @@ export const useUpdateExpense = () => {
         title: data.title,
         amount: data.amount,
         currency: data.currency,
+        date: data.date,
         paidBy: data.paidBy,
       });
 

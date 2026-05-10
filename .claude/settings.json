@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/emrik/Dokument/Programmering/node.js/Steven2/**)",
+      "Read(//var/home/emrik/Dokument/Programmering/node.js/Steven2/**)"
+    ]
+  }
+}

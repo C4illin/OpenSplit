@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Wrapper } from '@/components/Wrapper';
-import { createFileRoute } from '@tanstack/react-router';
-import { useAuth } from "../hooks/useAuth";
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
+import { finalizeOAuthRedirect, useAuth } from "../hooks/useAuth";
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -9,12 +10,23 @@ export const Route = createFileRoute('/')({
 
 function RouteComponent() {
   const { user, isAuthenticated, loginWithGoogle, logout } = useAuth();
+  const navigate = useNavigate();
+  const [finalizing, setFinalizing] = useState(
+    typeof window !== 'undefined'
+      && new URLSearchParams(window.location.search).has('code'),
+  );
 
-  // if isAuthenticated redirect to /overview
-  // if (isAuthenticated) {
-  //   redirect({ to: '/overview' });
-  //   return null;
-  // }
+  useEffect(() => {
+    if (!finalizing) return;
+    finalizeOAuthRedirect()
+      .then((ok) => {
+        if (ok) navigate({ to: '/overview' });
+      })
+      .catch((err) => {
+        console.error('OAuth callback failed:', err);
+      })
+      .finally(() => setFinalizing(false));
+  }, [finalizing, navigate]);
 
   const handleLogin = async () => {
     try {
@@ -29,8 +41,8 @@ function RouteComponent() {
       flex min-h-screen flex-col items-center justify-center gap-5
     '>
       <h1 className='mb-5 text-7xl font-black'>OpenSplit</h1>
-      <Button onClick={handleLogin} disabled={isAuthenticated} size="lg" className=''>
-        Sign in with Google
+      <Button onClick={handleLogin} disabled={isAuthenticated || finalizing} size="lg" className=''>
+        {finalizing ? 'Signing in…' : 'Sign in with Google'}
       </Button>
       {isAuthenticated && (
         <>

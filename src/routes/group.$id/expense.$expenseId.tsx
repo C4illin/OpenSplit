@@ -1,3 +1,4 @@
+import { LinkArrow } from "@/components/LinkArrow";
 import { expenseFormDefaults, SplitEditor } from "@/components/SplitEditor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,10 @@ function EditExpensePage() {
   return (
     <Wrapper className="flex min-h-dvh flex-col px-4">
       <div className="flex items-center justify-between pt-6 pb-4">
-        <h1 className="text-lg font-semibold">Edit expense</h1>
+        <div className="flex flex-row justify-center items-center gap-2">
+          <LinkArrow link="/group/$id" />
+          <h1 className="text-lg font-semibold">Edit expense</h1>
+        </div>
         <button
           type="button"
           onClick={async () => {

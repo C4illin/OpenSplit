@@ -1,20 +1,17 @@
 {
   "name": "opensplit",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "license": "AGPL-3.0-only",
-  "engines": {
-    "node": "^24.13.1",
-    "pnpm": "^10 || ^11"
-  },
+  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "vp dev",
+    "build": "tsc -b && vp build",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "typegen": "pocketbase-typegen --db pb_data/data.db --out src/types/pocketbase-types.gen.gen.ts"
+    "lint": "vp lint .",
+    "preview": "vp preview",
+    "typegen": "pocketbase-typegen --db pb_data/data.db --out src/types/pocketbase-types.gen.gen.ts",
+    "prepare": "vp config"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -51,7 +48,6 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "babel-plugin-react-compiler": "^1.0.0",
-    "eslint": "^9.39.4",
     "eslint-plugin-better-tailwindcss": "^4.3.2",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
@@ -59,7 +55,12 @@
     "pocketbase-typegen": "^1.3.3",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.57.2",
-    "vite": "^8.0.0",
-    "vite-plugin-pwa": "^1.3.0"
-  }
+    "vite": "catalog:",
+    "vite-plugin-pwa": "^1.3.0",
+    "vite-plus": "catalog:"
+  },
+  "engines": {
+    "node": "^24.13.1"
+  },
+  "packageManager": "pnpm@11.1.1"
 }

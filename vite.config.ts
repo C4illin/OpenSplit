@@ -10,7 +10,17 @@ export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
-  fmt: {},
+  fmt: {
+    ignorePatterns: [
+      "dist",
+      "**/*.gen.ts",
+      "src/components/ui/*",
+      "pb_migrations",
+      "pb_hooks",
+      "pb_data",
+      "node_modules",
+    ],
+  },
   lint: {
     plugins: ["oxc", "typescript", "unicorn", "react"],
     jsPlugins: ["@tanstack/eslint-plugin-query", "eslint-plugin-better-tailwindcss"],

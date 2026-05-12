@@ -8,150 +8,150 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as OverviewRouteImport } from "./routes/overview";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as InviteTokenRouteImport } from "./routes/invite.$token";
-import { Route as GroupIdIndexRouteImport } from "./routes/group.$id/index";
-import { Route as GroupIdAddRouteImport } from "./routes/group.$id/add";
-import { Route as GroupIdExpenseExpenseIdRouteImport } from "./routes/group.$id/expense.$expenseId";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as OverviewRouteImport } from './routes/overview'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as GroupIdIndexRouteImport } from './routes/group.$id/index'
+import { Route as GroupIdAddRouteImport } from './routes/group.$id/add'
+import { Route as GroupIdExpenseExpenseIdRouteImport } from './routes/group.$id/expense.$expenseId'
 
 const OverviewRoute = OverviewRouteImport.update({
-  id: "/overview",
-  path: "/overview",
+  id: '/overview',
+  path: '/overview',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
-  id: "/invite/$token",
-  path: "/invite/$token",
+  id: '/invite/$token',
+  path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const GroupIdIndexRoute = GroupIdIndexRouteImport.update({
-  id: "/group/$id/",
-  path: "/group/$id/",
+  id: '/group/$id/',
+  path: '/group/$id/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const GroupIdAddRoute = GroupIdAddRouteImport.update({
-  id: "/group/$id/add",
-  path: "/group/$id/add",
+  id: '/group/$id/add',
+  path: '/group/$id/add',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const GroupIdExpenseExpenseIdRoute = GroupIdExpenseExpenseIdRouteImport.update({
-  id: "/group/$id/expense/$expenseId",
-  path: "/group/$id/expense/$expenseId",
+  id: '/group/$id/expense/$expenseId',
+  path: '/group/$id/expense/$expenseId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/overview": typeof OverviewRoute;
-  "/invite/$token": typeof InviteTokenRoute;
-  "/group/$id/add": typeof GroupIdAddRoute;
-  "/group/$id/": typeof GroupIdIndexRoute;
-  "/group/$id/expense/$expenseId": typeof GroupIdExpenseExpenseIdRoute;
+  '/': typeof IndexRoute
+  '/overview': typeof OverviewRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id/': typeof GroupIdIndexRoute
+  '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/overview": typeof OverviewRoute;
-  "/invite/$token": typeof InviteTokenRoute;
-  "/group/$id/add": typeof GroupIdAddRoute;
-  "/group/$id": typeof GroupIdIndexRoute;
-  "/group/$id/expense/$expenseId": typeof GroupIdExpenseExpenseIdRoute;
+  '/': typeof IndexRoute
+  '/overview': typeof OverviewRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id': typeof GroupIdIndexRoute
+  '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/overview": typeof OverviewRoute;
-  "/invite/$token": typeof InviteTokenRoute;
-  "/group/$id/add": typeof GroupIdAddRoute;
-  "/group/$id/": typeof GroupIdIndexRoute;
-  "/group/$id/expense/$expenseId": typeof GroupIdExpenseExpenseIdRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/overview': typeof OverviewRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id/': typeof GroupIdIndexRoute
+  '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/overview"
-    | "/invite/$token"
-    | "/group/$id/add"
-    | "/group/$id/"
-    | "/group/$id/expense/$expenseId";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/overview'
+    | '/invite/$token'
+    | '/group/$id/add'
+    | '/group/$id/'
+    | '/group/$id/expense/$expenseId'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/overview"
-    | "/invite/$token"
-    | "/group/$id/add"
-    | "/group/$id"
-    | "/group/$id/expense/$expenseId";
+    | '/'
+    | '/overview'
+    | '/invite/$token'
+    | '/group/$id/add'
+    | '/group/$id'
+    | '/group/$id/expense/$expenseId'
   id:
-    | "__root__"
-    | "/"
-    | "/overview"
-    | "/invite/$token"
-    | "/group/$id/add"
-    | "/group/$id/"
-    | "/group/$id/expense/$expenseId";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/overview'
+    | '/invite/$token'
+    | '/group/$id/add'
+    | '/group/$id/'
+    | '/group/$id/expense/$expenseId'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  OverviewRoute: typeof OverviewRoute;
-  InviteTokenRoute: typeof InviteTokenRoute;
-  GroupIdAddRoute: typeof GroupIdAddRoute;
-  GroupIdIndexRoute: typeof GroupIdIndexRoute;
-  GroupIdExpenseExpenseIdRoute: typeof GroupIdExpenseExpenseIdRoute;
+  IndexRoute: typeof IndexRoute
+  OverviewRoute: typeof OverviewRoute
+  InviteTokenRoute: typeof InviteTokenRoute
+  GroupIdAddRoute: typeof GroupIdAddRoute
+  GroupIdIndexRoute: typeof GroupIdIndexRoute
+  GroupIdExpenseExpenseIdRoute: typeof GroupIdExpenseExpenseIdRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/overview": {
-      id: "/overview";
-      path: "/overview";
-      fullPath: "/overview";
-      preLoaderRoute: typeof OverviewRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/invite/$token": {
-      id: "/invite/$token";
-      path: "/invite/$token";
-      fullPath: "/invite/$token";
-      preLoaderRoute: typeof InviteTokenRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/group/$id/": {
-      id: "/group/$id/";
-      path: "/group/$id";
-      fullPath: "/group/$id/";
-      preLoaderRoute: typeof GroupIdIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/group/$id/add": {
-      id: "/group/$id/add";
-      path: "/group/$id/add";
-      fullPath: "/group/$id/add";
-      preLoaderRoute: typeof GroupIdAddRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/group/$id/expense/$expenseId": {
-      id: "/group/$id/expense/$expenseId";
-      path: "/group/$id/expense/$expenseId";
-      fullPath: "/group/$id/expense/$expenseId";
-      preLoaderRoute: typeof GroupIdExpenseExpenseIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+    '/overview': {
+      id: '/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof OverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group/$id/': {
+      id: '/group/$id/'
+      path: '/group/$id'
+      fullPath: '/group/$id/'
+      preLoaderRoute: typeof GroupIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group/$id/add': {
+      id: '/group/$id/add'
+      path: '/group/$id/add'
+      fullPath: '/group/$id/add'
+      preLoaderRoute: typeof GroupIdAddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group/$id/expense/$expenseId': {
+      id: '/group/$id/expense/$expenseId'
+      path: '/group/$id/expense/$expenseId'
+      fullPath: '/group/$id/expense/$expenseId'
+      preLoaderRoute: typeof GroupIdExpenseExpenseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -162,7 +162,7 @@ const rootRouteChildren: RootRouteChildren = {
   GroupIdAddRoute: GroupIdAddRoute,
   GroupIdIndexRoute: GroupIdIndexRoute,
   GroupIdExpenseExpenseIdRoute: GroupIdExpenseExpenseIdRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()

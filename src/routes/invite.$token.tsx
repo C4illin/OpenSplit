@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAcceptInvite, useInvitePreview } from "@/hooks/useApi";
 import { pb } from "@/lib/pocketbase";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -27,11 +21,11 @@ function RouteComponent() {
 
   const handleAccept = async () => {
     const result = await acceptInvite.mutateAsync(token);
-    navigate({ to: "/group/$id", params: { id: result.groupId } });
+    await navigate({ to: "/group/$id", params: { id: result.groupId } });
   };
 
-  const handleDecline = () => {
-    navigate({ to: "/overview" });
+  const handleDecline = async () => {
+    await navigate({ to: "/overview" });
   };
 
   if (isLoading) {
@@ -71,18 +65,13 @@ function RouteComponent() {
           <CardTitle>Join {preview.groupName}?</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            You've been invited to join this group.
-          </p>
+          <p className="text-sm text-muted-foreground">You've been invited to join this group.</p>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={handleDecline}>
             Decline
           </Button>
-          <Button
-            onClick={handleAccept}
-            disabled={acceptInvite.isPending}
-          >
+          <Button onClick={handleAccept} disabled={acceptInvite.isPending}>
             {acceptInvite.isPending ? "Joining..." : "Accept"}
           </Button>
         </CardFooter>

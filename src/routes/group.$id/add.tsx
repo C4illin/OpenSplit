@@ -1,16 +1,13 @@
+import { SplitEditor } from "@/components/SplitEditor";
+import { expenseFormDefaults } from "@/lib/expense-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { expenseFormDefaults, SplitEditor } from "@/components/SplitEditor";
 import { Wrapper } from "@/components/Wrapper";
 import { useCreateExpense, useGroup } from "@/hooks/useApi";
 import { useAppForm, withForm } from "@/hooks/useAppForm";
 import { pb } from "@/lib/pocketbase";
 import { cn } from "@/lib/utils";
-import {
-  createFileRoute,
-  redirect,
-  useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
 
@@ -59,7 +56,7 @@ function AddExpensePage() {
         splits,
       });
 
-      navigate({ to: "/group/$id", params: { id } });
+      await navigate({ to: "/group/$id", params: { id } });
     },
   });
 
@@ -70,11 +67,11 @@ function AddExpensePage() {
     if (!isLast) setStep(STEPS[stepIndex + 1]);
   };
 
-  const goBack = () => {
+  const goBack = async () => {
     if (stepIndex > 0) {
       setStep(STEPS[stepIndex - 1]);
     } else {
-      navigate({ to: "/group/$id", params: { id } });
+      await navigate({ to: "/group/$id", params: { id } });
     }
   };
 
@@ -87,18 +84,18 @@ function AddExpensePage() {
             key={s}
             className={cn(
               "h-1 rounded-full transition-all duration-200",
-              i <= stepIndex ? "w-6 bg-primary" : "w-6 bg-muted"
+              i <= stepIndex ? "w-6 bg-primary" : "w-6 bg-muted",
             )}
           />
         ))}
       </div>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           e.stopPropagation();
           if (isLast) {
-            form.handleSubmit();
+            await form.handleSubmit();
           } else {
             goNext();
           }
@@ -110,29 +107,21 @@ function AddExpensePage() {
           {step === "amount" && <AmountStep form={form} />}
           {step === "title" && <TitleStep form={form} />}
           {step === "split" && (
-            <SplitEditor
-              form={form}
-              members={members}
-              currentUserId={currentUserId}
-            />
+            <SplitEditor form={form} members={members} currentUserId={currentUserId} />
           )}
         </div>
 
         {/* Bottom nav */}
         <div className="flex gap-3 pt-4 pb-6">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={goBack}
-            size="lg"
-            className="flex-1"
-          >
+          <Button variant="outline" type="button" onClick={goBack} size="lg" className="flex-1">
             <ArrowLeft size={16} />
             Back
           </Button>
           {isLast ? (
             <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting, state.values.splits] as const}
+              selector={(state) =>
+                [state.canSubmit, state.isSubmitting, state.values.splits] as const
+              }
             >
               {([canSubmit, isSubmitting, splits]) => {
                 const totalPct = splits.reduce((s, x) => s + x.percentage, 0);
@@ -151,9 +140,7 @@ function AddExpensePage() {
               }}
             </form.Subscribe>
           ) : (
-            <form.Subscribe
-              selector={(state) => state.values}
-            >
+            <form.Subscribe selector={(state) => state.values}>
               {(values) => {
                 let disabled = true;
                 if (step === "amount") {
@@ -165,12 +152,7 @@ function AddExpensePage() {
                   disabled = false;
                 }
                 return (
-                  <Button
-                    type="submit"
-                    disabled={disabled}
-                    size="lg"
-                    className="flex-1"
-                  >
+                  <Button type="submit" disabled={disabled} size="lg" className="flex-1">
                     Next
                     <ArrowRight size={16} />
                   </Button>
@@ -222,9 +204,7 @@ const AmountStep = withForm({
               "
             />
             {field.state.meta.errors.length > 0 && (
-              <p className="text-sm text-destructive">
-                {field.state.meta.errors.join(", ")}
-              </p>
+              <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
             )}
           </div>
         )}
@@ -259,8 +239,7 @@ const TitleStep = withForm({
       <form.Field
         name="title"
         validators={{
-          onChange: ({ value }) =>
-            value.length < 1 ? "Title is required" : undefined,
+          onChange: ({ value }) => (value.length < 1 ? "Title is required" : undefined),
         }}
       >
         {(field) => (
@@ -278,9 +257,7 @@ const TitleStep = withForm({
               "
             />
             {field.state.meta.errors.length > 0 && (
-              <p className="text-sm text-destructive">
-                {field.state.meta.errors.join(", ")}
-              </p>
+              <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
             )}
           </div>
         )}
@@ -288,4 +265,3 @@ const TitleStep = withForm({
     </div>
   ),
 });
-

@@ -24,9 +24,7 @@ export const useAuth = () => {
 
   const loginWithGoogle = useCallback(async () => {
     const authMethods = await pb.collection("users").listAuthMethods();
-    const provider = authMethods.oauth2?.providers?.find(
-      (p) => p.name === OAUTH_PROVIDER,
-    );
+    const provider = authMethods.oauth2?.providers?.find((p) => p.name === OAUTH_PROVIDER);
     if (!provider) {
       throw new Error("Google OAuth provider is not configured on the server");
     }
@@ -86,12 +84,7 @@ export async function finalizeOAuthRedirect(): Promise<boolean> {
   try {
     await pb
       .collection("users")
-      .authWithOAuth2Code(
-        pending.provider,
-        code,
-        pending.codeVerifier,
-        pending.redirectUrl,
-      );
+      .authWithOAuth2Code(pending.provider, code, pending.codeVerifier, pending.redirectUrl);
     return true;
   } finally {
     cleanUrl();

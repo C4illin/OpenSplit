@@ -1,27 +1,35 @@
 import { Header } from "@/components/Header";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wrapper } from "@/components/Wrapper";
-import { useCreateGroup, useGroups } from '@/hooks/useApi';
-import { getAvatarUrl, pb } from '@/lib/pocketbase';
-import { useForm } from '@tanstack/react-form';
-import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
+import { useCreateGroup, useGroups } from "@/hooks/useApi";
+import { getAvatarUrl, pb } from "@/lib/pocketbase";
+import { useForm } from "@tanstack/react-form";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute('/overview')({
+export const Route = createFileRoute("/overview")({
   beforeLoad: () => {
     if (!pb.authStore.isValid) {
-      throw redirect({ to: '/' });
+      throw redirect({ to: "/" });
     }
   },
   component: RouteComponent,
-})
+});
 
 function GroupDialog() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,37 +38,37 @@ function GroupDialog() {
 
   const form = useForm({
     defaultValues: {
-      name: '',
+      name: "",
     },
     onSubmit: async ({ value }) => {
       const newGroup = await createGroup.mutateAsync({ name: value.name });
       setDialogOpen(false);
       form.reset();
-      navigate({ to: "/group/$id", params: { id: newGroup.id } });
+      await navigate({ to: "/group/$id", params: { id: newGroup.id } });
     },
   });
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus size={20} />New Group
+          <Plus size={20} />
+          New Group
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create a new group</DialogTitle>
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               e.stopPropagation();
-              form.handleSubmit();
+              await form.handleSubmit();
             }}
           >
             <form.Field
               name="name"
               validators={{
-                onChange: ({ value }) =>
-                  value.length < 1 ? 'Group name is required' : undefined,
+                onChange: ({ value }) => (value.length < 1 ? "Group name is required" : undefined),
               }}
             >
               {(field) => (
@@ -73,16 +81,16 @@ function GroupDialog() {
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
                   {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm text-destructive">
-                      {field.state.meta.errors.join(', ')}
-                    </p>
+                    <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
                   )}
                 </Field>
               )}
             </form.Field>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline" type="button">Cancel</Button>
+                <Button variant="outline" type="button">
+                  Cancel
+                </Button>
               </DialogClose>
               <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
                 {([canSubmit, isSubmitting]) => (
@@ -97,8 +105,7 @@ function GroupDialog() {
       </DialogContent>
     </Dialog>
   );
-};
-
+}
 
 function RouteComponent() {
   const { data: groups, isLoading } = useGroups();
@@ -113,33 +120,38 @@ function RouteComponent() {
         <h1>Your Groups</h1>
         <GroupDialog />
       </Header>
-      <Wrapper className="flex gap-4 flex-col">
+      <Wrapper className="flex flex-col gap-4">
         {!groups?.length ? (
           <p>You are not a member of any groups.</p>
-        ) : groups.map((group) => (
-          <Link to="/group/$id" params={{ id: group.id }} key={group.id}>
-            <Card key={group.id}>
-              <CardHeader>
-                <CardTitle>{group.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <AvatarGroup>
-                  {group.expand?.members?.map((member) => (
-                    <Avatar key={member.id}>
-                      <AvatarImage src={getAvatarUrl(member, member.avatar)} alt={member.name} />
-                      <AvatarFallback>{member.name[0] + (member.name.split(" ").pop() ?? "")[0]}</AvatarFallback>
-                    </Avatar>
-                  ))}
-                </AvatarGroup>
-              </CardContent>
-              <CardFooter>
-                {group.expand?.members?.length ? `${group.expand.members.length} member${group.expand.members.length > 1 ? 's' : ''}` : 'No members yet'}
-              </CardFooter>
-            </Card>
-          </Link>
-        ))}
+        ) : (
+          groups.map((group) => (
+            <Link to="/group/$id" params={{ id: group.id }} key={group.id}>
+              <Card key={group.id}>
+                <CardHeader>
+                  <CardTitle>{group.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AvatarGroup>
+                    {group.expand?.members?.map((member) => (
+                      <Avatar key={member.id}>
+                        <AvatarImage src={getAvatarUrl(member, member.avatar)} alt={member.name} />
+                        <AvatarFallback>
+                          {member.name[0] + (member.name.split(" ").pop() ?? "")[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))}
+                  </AvatarGroup>
+                </CardContent>
+                <CardFooter>
+                  {group.expand?.members?.length
+                    ? `${group.expand.members.length} member${group.expand.members.length > 1 ? "s" : ""}`
+                    : "No members yet"}
+                </CardFooter>
+              </Card>
+            </Link>
+          ))
+        )}
       </Wrapper>
     </>
   );
 }
-

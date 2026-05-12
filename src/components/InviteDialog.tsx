@@ -1,6 +1,14 @@
 import { useCreateInvite } from "@/hooks/useApi";
 import { useState } from "react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Check, Copy, UserPlus } from "lucide-react";
 import { Input } from "./ui/input";
@@ -67,5 +75,4 @@ export const InviteDialog = ({
       </DialogContent>
     </Dialog>
   );
-}
-
+};

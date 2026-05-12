@@ -5,19 +5,14 @@
       if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
         document.documentElement.classList.add("dark");
       }
-      window
-        .matchMedia("(prefers-color-scheme: dark)")
-        .addEventListener("change", (e) => {
-          document.documentElement.classList.toggle("dark", e.matches);
-        });
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+        document.documentElement.classList.toggle("dark", e.matches);
+      });
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>OpenSplit</title>
-    <meta
-      name="description"
-      content="split bills and keep track of who owes what."
-    />
+    <meta name="description" content="split bills and keep track of who owes what." />
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

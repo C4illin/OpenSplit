@@ -1,20 +1,29 @@
 /// <reference path="../pb_data/types.d.ts" />
-migrate((app) => {
-  const collection = app.findCollectionByNameOrId("pbc_3346940990")
+migrate(
+  (app) => {
+    const collection = app.findCollectionByNameOrId("pbc_3346940990");
 
-  // update collection data
-  unmarshal({
-    "createRule": "@request.auth.id != \"\""
-  }, collection)
+    // update collection data
+    unmarshal(
+      {
+        createRule: '@request.auth.id != ""',
+      },
+      collection,
+    );
 
-  return app.save(collection)
-}, (app) => {
-  const collection = app.findCollectionByNameOrId("pbc_3346940990")
+    return app.save(collection);
+  },
+  (app) => {
+    const collection = app.findCollectionByNameOrId("pbc_3346940990");
 
-  // update collection data
-  unmarshal({
-    "createRule": null
-  }, collection)
+    // update collection data
+    unmarshal(
+      {
+        createRule: null,
+      },
+      collection,
+    );
 
-  return app.save(collection)
-})
+    return app.save(collection);
+  },
+);

@@ -5,11 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Wrapper } from "@/components/Wrapper";
-import {
-  useExpenses,
-  useGroup,
-  useSplits
-} from "@/hooks/useApi";
+import { useExpenses, useGroup, useSplits } from "@/hooks/useApi";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { IsoDateString } from "@/types/pocketbase-types.gen";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
@@ -36,7 +32,7 @@ function formatAmount(amount: number, currency: string) {
 }
 
 function RouteComponent() {
-  'use no memo';
+  "use no memo";
   const { id } = Route.useParams();
   const { data: group } = useGroup(id);
   const { data: expenses, isLoading } = useExpenses(id);
@@ -84,11 +80,7 @@ function RouteComponent() {
     <>
       <Header link="/overview">
         <h1 className="text-xl font-semibold">{group?.name ?? "Group"}</h1>
-        <InviteDialog
-          groupId={id}
-          open={inviteDialogOpen}
-          onOpenChange={setInviteDialogOpen}
-        />
+        <InviteDialog groupId={id} open={inviteDialogOpen} onOpenChange={setInviteDialogOpen} />
       </Header>
 
       <Wrapper>
@@ -97,24 +89,31 @@ function RouteComponent() {
             {balances.map(({ member, balance }) => (
               <li key={member.id} className="flex items-center gap-3">
                 <Avatar size="sm">
-                  <AvatarImage src={getAvatarUrl(member, member.avatar)} alt={member.name || member.username} />
+                  <AvatarImage
+                    src={getAvatarUrl(member, member.avatar)}
+                    alt={member.name || member.username}
+                  />
                   <AvatarFallback>
                     {(member.name || member.username).charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="flex-1 truncate text-sm">
-                  {member.name || member.username}
-                </span>
+                <span className="flex-1 truncate text-sm">{member.name || member.username}</span>
                 <span
                   className={`
                     text-sm font-medium
-                    ${balance > 0 ? `
-                      text-green-600
-                      dark:text-green-400
-                    ` : balance < 0 ? `
-                      text-red-600
-                      dark:text-red-400
-                    ` : `text-muted-foreground`}
+                    ${
+                      balance > 0
+                        ? `
+                          text-green-600
+                          dark:text-green-400
+                        `
+                        : balance < 0
+                          ? `
+                            text-red-600
+                            dark:text-red-400
+                          `
+                          : `text-muted-foreground`
+                    }
                   `}
                 >
                   {balance > 0 ? "+" : ""}
@@ -157,12 +156,17 @@ function RouteComponent() {
                       transform: `translateY(${virtualItem.start}px)`,
                     }}
                   >
-                    <Link to="/group/$id/expense/$expenseId" params={{ id: group?.id ?? "", expenseId: expense.id ?? "" }}>
+                    <Link
+                      to="/group/$id/expense/$expenseId"
+                      params={{ id: group?.id ?? "", expenseId: expense.id ?? "" }}
+                    >
                       <Card>
                         <CardHeader className="px-4 py-3">
-                          <CardTitle className="
-                            flex items-center justify-between text-base
-                          ">
+                          <CardTitle
+                            className="
+                              flex items-center justify-between text-base
+                            "
+                          >
                             <span>{expense.title}</span>
                             <span className="font-semibold">
                               {formatAmount(expense.amount, expense.currency)}
@@ -170,10 +174,12 @@ function RouteComponent() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="px-4 pt-0 pb-3">
-                          <div className="
-                            flex items-center justify-between text-sm
-                            text-muted-foreground
-                          ">
+                          <div
+                            className="
+                              flex items-center justify-between text-sm
+                              text-muted-foreground
+                            "
+                          >
                             <span>
                               Paid by{" "}
                               {expense.expand?.paidBy?.name ??
@@ -193,8 +199,7 @@ function RouteComponent() {
         )}
       </Wrapper>
 
-
-      <Wrapper className="sticky flex items-center justify-center bottom-16">
+      <Wrapper className="sticky bottom-16 flex items-center justify-center">
         <Link to="/group/$id/add" params={{ id }}>
           <Button className="rounded-full shadow-lg" size="lg">
             <Plus size={32} />
@@ -205,4 +210,3 @@ function RouteComponent() {
     </>
   );
 }
-

@@ -7,9 +7,5 @@ type Props = {
 };
 
 export const Wrapper = ({ children, className }: Props) => {
-  return (
-    <div className={cn("mx-auto w-full max-w-xl", className)}>
-      {children}
-    </div>
-  );
-}
+  return <div className={cn("mx-auto w-full max-w-xl", className)}>{children}</div>;
+};

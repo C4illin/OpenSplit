@@ -18,13 +18,11 @@ export const useGroups = () => {
   return useQuery({
     queryKey: ["groups", userId],
     queryFn: async () => {
-      return await pb
-        .collection("groups")
-        .getFullList<GroupsResponse<GroupsExpand>>({
-          filter: `members ~ "${userId}"`,
-          sort: "-created",
-          expand: "members",
-        });
+      return await pb.collection("groups").getFullList<GroupsResponse<GroupsExpand>>({
+        filter: `members ~ "${userId}"`,
+        sort: "-created",
+        expand: "members",
+      });
     },
     enabled: !!userId,
   });
@@ -34,11 +32,9 @@ export const useGroup = (groupId: string) => {
   return useQuery({
     queryKey: ["groups", groupId],
     queryFn: async () => {
-      return await pb
-        .collection("groups")
-        .getOne<GroupsResponse<GroupsExpand>>(groupId, {
-          expand: "members",
-        });
+      return await pb.collection("groups").getOne<GroupsResponse<GroupsExpand>>(groupId, {
+        expand: "members",
+      });
     },
     enabled: !!groupId,
   });
@@ -54,8 +50,8 @@ export const useCreateGroup = () => {
         members: userId ? [userId] : [],
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
 };
@@ -70,13 +66,11 @@ export const useExpenses = (groupId: string) => {
   return useQuery({
     queryKey: ["expenses", groupId],
     queryFn: async () => {
-      return await pb
-        .collection("expenses")
-        .getFullList<ExpensesResponse<ExpensesExpand>>({
-          filter: `group = "${groupId}"`,
-          sort: "-date",
-          expand: "paidBy",
-        });
+      return await pb.collection("expenses").getFullList<ExpensesResponse<ExpensesExpand>>({
+        filter: `group = "${groupId}"`,
+        sort: "-date",
+        expand: "paidBy",
+      });
     },
     enabled: !!groupId,
   });
@@ -129,11 +123,11 @@ export const useCreateExpense = () => {
 
       return expense;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
         queryKey: ["expenses", variables.group],
       });
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["splits", variables.group],
       });
     },
@@ -148,11 +142,9 @@ export const useGetExpense = (expenseId: string) => {
   return useQuery({
     queryKey: ["expense", expenseId],
     queryFn: async () => {
-      return await pb
-        .collection("expenses")
-        .getOne<ExpensesResponse<GetExpenseExpand>>(expenseId, {
-          expand: "splits(expense)",
-        });
+      return await pb.collection("expenses").getOne<ExpensesResponse<GetExpenseExpand>>(expenseId, {
+        expand: "splits(expense)",
+      });
     },
     enabled: !!expenseId,
   });
@@ -183,9 +175,7 @@ export const useUpdateExpense = () => {
       });
 
       // Delete old splits
-      await Promise.all(
-        data.existingSplitIds.map((id) => pb.collection("splits").delete(id)),
-      );
+      await Promise.all(data.existingSplitIds.map((id) => pb.collection("splits").delete(id)));
 
       // Create new splits
       await Promise.all(
@@ -200,14 +190,14 @@ export const useUpdateExpense = () => {
 
       return expense;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
         queryKey: ["expense", variables.id],
       });
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["expenses", variables.group],
       });
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["splits", variables.group],
       });
     },
@@ -218,16 +208,14 @@ export const useDeleteExpense = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { id: string; group: string; splitIds: string[] }) => {
-      await Promise.all(
-        data.splitIds.map((id) => pb.collection("splits").delete(id)),
-      );
+      await Promise.all(data.splitIds.map((id) => pb.collection("splits").delete(id)));
       await pb.collection("expenses").delete(data.id);
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
         queryKey: ["expenses", variables.group],
       });
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["splits", variables.group],
       });
     },
@@ -277,8 +265,8 @@ export const useAcceptInvite = () => {
         method: "POST",
       })) as { groupId: string };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
 };

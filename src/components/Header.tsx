@@ -11,16 +11,17 @@ type Props = {
 
 export const Header = ({ children, className, link }: Props) => {
   return (
-    <header className={cn(`
-      mx-auto mt-2 mb-4 flex w-full max-w-xl items-center gap-2 rounded-2xl
-      bg-card p-4
-    `, className)}>
-      {link && (
-        <LinkArrow link={link} />
+    <header
+      className={cn(
+        `
+          mx-auto mt-2 mb-4 flex w-full max-w-xl items-center gap-2 rounded-2xl
+          bg-card p-4
+        `,
+        className,
       )}
-      <div className="flex flex-1 items-center justify-between">
-        {children}
-      </div>
+    >
+      {link && <LinkArrow link={link} />}
+      <div className="flex flex-1 items-center justify-between">{children}</div>
     </header>
-  )
-}
+  );
+};

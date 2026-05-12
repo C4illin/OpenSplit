@@ -1,20 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { withForm } from "@/hooks/useAppForm";
+import { expenseFormDefaults } from "@/lib/expense-form";
 import { getAvatarUrl } from "@/lib/pocketbase";
 import { cn } from "@/lib/utils";
 import { Check, RotateCcw } from "lucide-react";
 import { useState } from "react";
-
-export const expenseFormDefaults = {
-  title: "",
-  amount: "",
-  currency: "SEK",
-  date: "",
-  paidBy: "",
-  splits: [] as { user: string; percentage: number }[],
-  excluded: [] as string[],
-};
 
 export type Member = {
   id: string;
@@ -39,9 +30,7 @@ export const SplitEditor = withForm({
     const redistributeAmong = (excludedIds: string[], lockedSet: Set<number>) => {
       const lockedTotal = form.state.values.splits.reduce(
         (sum, s, i) =>
-          lockedSet.has(i) && !excludedIds.includes(members[i].id)
-            ? sum + s.percentage
-            : sum,
+          lockedSet.has(i) && !excludedIds.includes(members[i].id) ? sum + s.percentage : sum,
         0,
       );
       const unlocked = members
@@ -54,10 +43,7 @@ export const SplitEditor = withForm({
         if (excludedIds.includes(members[i].id)) {
           form.setFieldValue(`splits[${i}].percentage`, 0);
         } else if (!lockedSet.has(i)) {
-          form.setFieldValue(
-            `splits[${i}].percentage`,
-            Math.round(perUnlocked * 100) / 100,
-          );
+          form.setFieldValue(`splits[${i}].percentage`, Math.round(perUnlocked * 100) / 100);
         }
       }
     };
@@ -80,16 +66,14 @@ export const SplitEditor = withForm({
 
     const formatValue = (pct: number) => {
       if (displayMode === "value") {
-        return (totalAmount * pct / 100).toFixed(2);
+        return ((totalAmount * pct) / 100).toFixed(2);
       }
       return `${Math.round(pct * 10) / 10}`;
     };
 
     const handleSplitChange = (index: number, rawValue: number) => {
       const newPct =
-        displayMode === "value" && totalAmount > 0
-          ? (rawValue / totalAmount) * 100
-          : rawValue;
+        displayMode === "value" && totalAmount > 0 ? (rawValue / totalAmount) * 100 : rawValue;
       const value = Math.max(0, newPct);
       form.setFieldValue(`splits[${index}].percentage`, value);
 
@@ -111,10 +95,7 @@ export const SplitEditor = withForm({
       const perUnlocked = unlocked.length > 0 ? remainder / unlocked.length : 0;
 
       for (const i of unlocked) {
-        form.setFieldValue(
-          `splits[${i}].percentage`,
-          Math.round(perUnlocked * 100) / 100,
-        );
+        form.setFieldValue(`splits[${i}].percentage`, Math.round(perUnlocked * 100) / 100);
       }
     };
 
@@ -145,7 +126,9 @@ export const SplitEditor = withForm({
                   >
                     <Avatar size="sm">
                       <AvatarImage src={getAvatarUrl(m, m.avatar)} alt={m.name || m.username} />
-                      <AvatarFallback>{(m.name || m.username).charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>
+                        {(m.name || m.username).charAt(0).toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     {m.name || m.username}
                   </button>
@@ -205,33 +188,45 @@ export const SplitEditor = withForm({
                           onClick={() => toggleMember(member.id)}
                           className={cn(
                             `
-                              flex h-5 w-5 shrink-0 items-center justify-center
-                              rounded border transition-colors
+                              flex size-5 shrink-0 items-center justify-center
+                              rounded-sm border transition-colors
                             `,
                             isIncluded
-                              ? "border-primary bg-primary text-primary-foreground"
+                              ? `
+                                border-primary bg-primary
+                                text-primary-foreground
+                              `
                               : "border-muted-foreground/30",
                           )}
                         >
                           {isIncluded && <Check size={14} />}
                         </button>
                         <Avatar size="sm">
-                          <AvatarImage src={getAvatarUrl(member, member.avatar)} alt={member.name || member.username} />
-                          <AvatarFallback>{(member.name || member.username).charAt(0).toUpperCase()}</AvatarFallback>
+                          <AvatarImage
+                            src={getAvatarUrl(member, member.avatar)}
+                            alt={member.name || member.username}
+                          />
+                          <AvatarFallback>
+                            {(member.name || member.username).charAt(0).toUpperCase()}
+                          </AvatarFallback>
                         </Avatar>
-                        <span className={cn(
-                          "flex-1 truncate text-sm",
-                          !isIncluded && "text-muted-foreground",
-                        )}>
+                        <span
+                          className={cn(
+                            "flex-1 truncate text-sm",
+                            !isIncluded && "text-muted-foreground",
+                          )}
+                        >
                           {member.name || member.username}
                         </span>
 
                         {isIncluded ? (
                           isSoleRemainder ? (
-                            <span className="
-                              flex h-8 w-16 items-center justify-center
-                              text-sm text-muted-foreground tabular-nums
-                            ">
+                            <span
+                              className="
+                                flex h-8 w-16 items-center justify-center
+                                text-sm text-muted-foreground tabular-nums
+                              "
+                            >
                               {formatValue(pct)}
                             </span>
                           ) : (
@@ -249,14 +244,18 @@ export const SplitEditor = withForm({
                               min="0"
                               step={displayMode === "percentage" ? "1" : "0.01"}
                               value={formatValue(pct)}
-                              onChange={(e) => handleSplitChange(i, parseFloat(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleSplitChange(i, parseFloat(e.target.value) || 0)
+                              }
                             />
                           )
                         ) : (
-                          <span className="
-                            flex h-8 w-16 items-center justify-center
-                            text-sm text-muted-foreground tabular-nums
-                          ">
+                          <span
+                            className="
+                              flex h-8 w-16 items-center justify-center text-sm
+                              text-muted-foreground tabular-nums
+                            "
+                          >
                             {displayMode === "percentage" ? "0" : "0.00"}
                           </span>
                         )}
@@ -275,8 +274,8 @@ export const SplitEditor = withForm({
                               redistributeAmong(excluded, next);
                             }}
                             className="
-                              ml-1 flex h-5 w-5 shrink-0 items-center
-                              justify-center rounded text-muted-foreground
+                              ml-1 flex size-5 shrink-0 items-center
+                              justify-center rounded-sm text-muted-foreground
                               transition-colors
                               hover:bg-muted hover:text-foreground
                             "
@@ -292,14 +291,14 @@ export const SplitEditor = withForm({
                   })}
 
                   {/* Total */}
-                  <div className="
-                    flex justify-between px-3 py-1.5 text-xs font-medium
-                    text-muted-foreground
-                  ">
+                  <div
+                    className="
+                      flex justify-between px-3 py-1.5 text-xs font-medium
+                      text-muted-foreground
+                    "
+                  >
                     <span>Total</span>
-                    <span className={cn(
-                      Math.abs(totalPct - 100) > 0.1 && "text-destructive",
-                    )}>
+                    <span className={cn(Math.abs(totalPct - 100) > 0.1 && `text-destructive`)}>
                       {displayMode === "percentage"
                         ? `${Math.round(totalPct * 10) / 10}%`
                         : totalAmount.toFixed(2)}

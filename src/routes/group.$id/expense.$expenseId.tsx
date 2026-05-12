@@ -1,16 +1,13 @@
 import { LinkArrow } from "@/components/LinkArrow";
-import { expenseFormDefaults, SplitEditor } from "@/components/SplitEditor";
+import { SplitEditor } from "@/components/SplitEditor";
+import { expenseFormDefaults } from "@/lib/expense-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Wrapper } from "@/components/Wrapper";
 import { useDeleteExpense, useGetExpense, useGroup, useUpdateExpense } from "@/hooks/useApi";
 import { useAppForm } from "@/hooks/useAppForm";
 import { pb } from "@/lib/pocketbase";
-import {
-  createFileRoute,
-  redirect,
-  useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Check, Trash2 } from "lucide-react";
 
 const CURRENCIES = ["SEK", "EUR", "USD", "GBP", "NOK", "DKK"];
@@ -72,7 +69,7 @@ function EditExpensePage() {
         existingSplitIds,
       });
 
-      navigate({ to: "/group/$id", params: { id } });
+      await navigate({ to: "/group/$id", params: { id } });
     },
   });
 
@@ -87,7 +84,7 @@ function EditExpensePage() {
   return (
     <Wrapper className="flex min-h-dvh flex-col px-4">
       <div className="flex items-center justify-between pt-6 pb-4">
-        <div className="flex flex-row justify-center items-center gap-2">
+        <div className="flex flex-row items-center justify-center gap-2">
           <LinkArrow link="/group/$id" />
           <h1 className="text-lg font-semibold">Edit expense</h1>
         </div>
@@ -100,10 +97,10 @@ function EditExpensePage() {
               group: id,
               splitIds: existingSplitIds,
             });
-            navigate({ to: "/group/$id", params: { id } });
+            await navigate({ to: "/group/$id", params: { id } });
           }}
           className="
-            flex h-8 w-8 items-center justify-center rounded-md
+            flex size-8 items-center justify-center rounded-md
             text-muted-foreground transition-colors
             hover:bg-destructive/10 hover:text-destructive
           "
@@ -114,10 +111,10 @@ function EditExpensePage() {
       </div>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           e.stopPropagation();
-          form.handleSubmit();
+          await form.handleSubmit();
         }}
         className="flex flex-1 flex-col gap-6"
       >
@@ -127,8 +124,7 @@ function EditExpensePage() {
           <form.Field
             name="title"
             validators={{
-              onChange: ({ value }) =>
-                value.length < 1 ? "Title is required" : undefined,
+              onChange: ({ value }) => (value.length < 1 ? "Title is required" : undefined),
             }}
           >
             {(field) => (
@@ -139,15 +135,13 @@ function EditExpensePage() {
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="
-                    w-full bg-transparent text-2xl font-semibold
-                    tracking-tight outline-none
+                    w-full bg-transparent text-2xl font-semibold tracking-tight
+                    outline-none
                     placeholder:text-muted-foreground/40
                   "
                 />
                 {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
+                  <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
                 )}
               </div>
             )}
@@ -188,9 +182,7 @@ function EditExpensePage() {
                   "
                 />
                 {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
+                  <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
                 )}
               </div>
             )}
@@ -220,8 +212,7 @@ function EditExpensePage() {
           <form.Field
             name="date"
             validators={{
-              onChange: ({ value }) =>
-                !value ? "Date is required" : undefined,
+              onChange: ({ value }) => (!value ? "Date is required" : undefined),
             }}
           >
             {(field) => (
@@ -237,9 +228,7 @@ function EditExpensePage() {
                   "
                 />
                 {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
+                  <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
                 )}
               </div>
             )}
@@ -247,11 +236,7 @@ function EditExpensePage() {
         </div>
 
         {/* Split editor */}
-        <SplitEditor
-          form={form}
-          members={members}
-          currentUserId={currentUserId}
-        />
+        <SplitEditor form={form} members={members} currentUserId={currentUserId} />
 
         {/* Bottom actions */}
         <div className="sticky bottom-0 flex gap-3 pt-4 pb-6">
@@ -266,7 +251,9 @@ function EditExpensePage() {
             Cancel
           </Button>
           <form.Subscribe
-            selector={(state) => [state.canSubmit, state.isSubmitting, state.values.splits] as const}
+            selector={(state) =>
+              [state.canSubmit, state.isSubmitting, state.values.splits] as const
+            }
           >
             {([canSubmit, isSubmitting, splits]) => {
               const totalPct = splits.reduce((s, x) => s + x.percentage, 0);

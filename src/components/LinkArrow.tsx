@@ -5,4 +5,4 @@ export const LinkArrow = ({ link }: { link: LinkProps["to"] }) => (
   <Link to={link}>
     <ChevronLeft className="shrink-0" />
   </Link>
-)
+);

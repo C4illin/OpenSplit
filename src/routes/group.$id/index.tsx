@@ -82,7 +82,7 @@ function RouteComponent() {
 
   return (
     <>
-      <Header>
+      <Header link="/overview">
         <h1 className="text-xl font-semibold">{group?.name ?? "Group"}</h1>
         <InviteDialog
           groupId={id}

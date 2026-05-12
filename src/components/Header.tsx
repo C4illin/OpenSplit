@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
-import { Link, type LinkProps } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { type LinkProps } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { LinkArrow } from "./LinkArrow";
 
 type Props = {
   children: ReactNode;
@@ -16,9 +16,7 @@ export const Header = ({ children, className, link }: Props) => {
       bg-card p-4
     `, className)}>
       {link && (
-        <Link to={link} >
-          <ChevronLeft className="shrink-0" />
-        </Link>
+        <LinkArrow link={link} />
       )}
       <div className="flex flex-1 items-center justify-between">
         {children}

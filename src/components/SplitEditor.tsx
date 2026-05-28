@@ -26,6 +26,7 @@ export const SplitEditor = withForm({
     const totalAmount = parseFloat(form.state.values.amount) || 0;
     const [locked, setLocked] = useState<Set<number>>(() => new Set());
     const [displayMode, setDisplayMode] = useState<"percentage" | "value">("percentage");
+    const [editing, setEditing] = useState<{ index: number; raw: string } | null>(null);
 
     const redistributeAmong = (excludedIds: string[], lockedSet: Set<number>) => {
       const lockedTotal = form.state.values.splits.reduce(
@@ -66,10 +67,19 @@ export const SplitEditor = withForm({
 
     const formatValue = (pct: number) => {
       if (displayMode === "value") {
-        return ((totalAmount * pct) / 100).toFixed(2);
+        return new Intl.NumberFormat(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+          useGrouping: false,
+        }).format((totalAmount * pct) / 100);
       }
-      return `${Math.round(pct * 10) / 10}`;
+      return new Intl.NumberFormat(undefined, {
+        maximumFractionDigits: 1,
+        useGrouping: false,
+      }).format(Math.round(pct * 10) / 10);
     };
+
+    const parseLocaleNumber = (raw: string) => parseFloat(raw.replace(",", ".")) || 0;
 
     const handleSplitChange = (index: number, rawValue: number) => {
       const newPct =
@@ -217,7 +227,7 @@ export const SplitEditor = withForm({
                           isSoleRemainder ? (
                             <span
                               className="
-                                flex h-8 w-16 items-center justify-center text-sm
+                                flex h-10 min-w-20 items-center justify-end px-1 text-lg
                                 text-muted-foreground tabular-nums
                               "
                             >
@@ -227,29 +237,35 @@ export const SplitEditor = withForm({
                             <Input
                               className={cn(
                                 `
-                                  w-16 [appearance:textfield] text-center tabular-nums
+                                  field-sizing-content h-10 min-w-20 [appearance:textfield] border-0
+                                  bg-transparent px-1 text-right text-lg tabular-nums shadow-none
+                                  focus-visible:ring-0
+                                  md:text-lg
+                                  dark:bg-transparent
                                   [&::-webkit-inner-spin-button]:appearance-none
                                   [&::-webkit-outer-spin-button]:appearance-none
                                 `,
                                 isLocked && "font-medium text-foreground",
                               )}
-                              type="number"
-                              min="0"
-                              step={displayMode === "percentage" ? "1" : "0.01"}
-                              value={formatValue(pct)}
-                              onChange={(e) =>
-                                handleSplitChange(i, parseFloat(e.target.value) || 0)
-                              }
+                              type="text"
+                              inputMode="decimal"
+                              value={editing?.index === i ? editing.raw : formatValue(pct)}
+                              onFocus={() => setEditing({ index: i, raw: formatValue(pct) })}
+                              onChange={(e) => {
+                                setEditing({ index: i, raw: e.target.value });
+                                handleSplitChange(i, parseLocaleNumber(e.target.value));
+                              }}
+                              onBlur={() => setEditing(null)}
                             />
                           )
                         ) : (
                           <span
                             className="
-                              flex h-8 w-16 items-center justify-center text-sm
+                              flex h-10 min-w-20 items-center justify-end px-1 text-lg
                               text-muted-foreground tabular-nums
                             "
                           >
-                            {displayMode === "percentage" ? "0" : "0.00"}
+                            {formatValue(0)}
                           </span>
                         )}
 
@@ -291,8 +307,15 @@ export const SplitEditor = withForm({
                     <span>Total</span>
                     <span className={cn(Math.abs(totalPct - 100) > 0.1 && `text-destructive`)}>
                       {displayMode === "percentage"
-                        ? `${Math.round(totalPct * 10) / 10}%`
-                        : totalAmount.toFixed(2)}
+                        ? `${new Intl.NumberFormat(undefined, {
+                            maximumFractionDigits: 1,
+                            useGrouping: false,
+                          }).format(Math.round(totalPct * 10) / 10)}%`
+                        : new Intl.NumberFormat(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                            useGrouping: false,
+                          }).format(totalAmount)}
                     </span>
                   </div>
                 </div>

@@ -113,8 +113,8 @@ export const SplitEditor = withForm({
                     onClick={() => field.handleChange(m.id)}
                     className={cn(
                       `
-                        flex items-center gap-2 rounded-full border px-3 py-1.5
-                        text-sm transition-colors
+                        flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm
+                        transition-colors
                       `,
                       field.state.value === m.id
                         ? "border-primary bg-primary/10 text-foreground"
@@ -145,8 +145,8 @@ export const SplitEditor = withForm({
               type="button"
               onClick={() => setDisplayMode((m) => (m === "percentage" ? "value" : "percentage"))}
               className="
-                flex items-center gap-1 rounded-md px-2 py-1 text-xs
-                text-muted-foreground transition-colors
+                flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground
+                transition-colors
                 hover:bg-muted
               "
             >
@@ -172,10 +172,7 @@ export const SplitEditor = withForm({
                       <div
                         key={member.id}
                         className={cn(
-                          `
-                            flex items-center gap-3 rounded-lg border px-3 py-2
-                            transition-colors
-                          `,
+                          `flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors`,
                           !isIncluded
                             ? "border-border opacity-50"
                             : isLocked
@@ -188,14 +185,11 @@ export const SplitEditor = withForm({
                           onClick={() => toggleMember(member.id)}
                           className={cn(
                             `
-                              flex size-5 shrink-0 items-center justify-center
-                              rounded-sm border transition-colors
+                              flex size-5 shrink-0 items-center justify-center rounded-sm border
+                              transition-colors
                             `,
                             isIncluded
-                              ? `
-                                border-primary bg-primary
-                                text-primary-foreground
-                              `
+                              ? `border-primary bg-primary text-primary-foreground`
                               : "border-muted-foreground/30",
                           )}
                         >
@@ -223,8 +217,8 @@ export const SplitEditor = withForm({
                           isSoleRemainder ? (
                             <span
                               className="
-                                flex h-8 w-16 items-center justify-center
-                                text-sm text-muted-foreground tabular-nums
+                                flex h-8 w-16 items-center justify-center text-sm
+                                text-muted-foreground tabular-nums
                               "
                             >
                               {formatValue(pct)}
@@ -233,8 +227,7 @@ export const SplitEditor = withForm({
                             <Input
                               className={cn(
                                 `
-                                  w-16 [appearance:textfield] text-center
-                                  tabular-nums
+                                  w-16 [appearance:textfield] text-center tabular-nums
                                   [&::-webkit-inner-spin-button]:appearance-none
                                   [&::-webkit-outer-spin-button]:appearance-none
                                 `,
@@ -274,9 +267,8 @@ export const SplitEditor = withForm({
                               redistributeAmong(excluded, next);
                             }}
                             className="
-                              ml-1 flex size-5 shrink-0 items-center
-                              justify-center rounded-sm text-muted-foreground
-                              transition-colors
+                              ml-1 flex size-5 shrink-0 items-center justify-center rounded-sm
+                              text-muted-foreground transition-colors
                               hover:bg-muted hover:text-foreground
                             "
                             title="Reset to equal share"
@@ -293,8 +285,7 @@ export const SplitEditor = withForm({
                   {/* Total */}
                   <div
                     className="
-                      flex justify-between px-3 py-1.5 text-xs font-medium
-                      text-muted-foreground
+                      flex justify-between px-3 py-1.5 text-xs font-medium text-muted-foreground
                     "
                   >
                     <span>Total</span>

@@ -100,8 +100,8 @@ function EditExpensePage() {
             await navigate({ to: "/group/$id", params: { id } });
           }}
           className="
-            flex size-8 items-center justify-center rounded-md
-            text-muted-foreground transition-colors
+            flex size-8 items-center justify-center rounded-md text-muted-foreground
+            transition-colors
             hover:bg-destructive/10 hover:text-destructive
           "
           title="Delete expense"
@@ -135,8 +135,7 @@ function EditExpensePage() {
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="
-                    w-full bg-transparent text-2xl font-semibold tracking-tight
-                    outline-none
+                    w-full bg-transparent text-2xl font-semibold tracking-tight outline-none
                     placeholder:text-muted-foreground/40
                   "
                 />
@@ -174,8 +173,8 @@ function EditExpensePage() {
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="
-                    w-full [appearance:textfield] bg-transparent text-3xl
-                    font-bold tracking-tight outline-none
+                    w-full [appearance:textfield] bg-transparent text-3xl font-bold tracking-tight
+                    outline-none
                     placeholder:text-muted-foreground/40
                     [&::-webkit-inner-spin-button]:appearance-none
                     [&::-webkit-outer-spin-button]:appearance-none

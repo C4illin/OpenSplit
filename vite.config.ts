@@ -114,7 +114,7 @@ export default defineConfig({
       "no-array-constructor": "error",
       "no-unused-expressions": "error",
       "better-tailwindcss/enforce-consistent-class-order": "warn",
-      "better-tailwindcss/enforce-consistent-line-wrapping": "warn",
+      "better-tailwindcss/enforce-consistent-line-wrapping": ["warn", { printWidth: 100 }],
       "better-tailwindcss/no-deprecated-classes": "warn",
       "better-tailwindcss/no-duplicate-classes": "warn",
       "better-tailwindcss/no-unnecessary-whitespace": "warn",

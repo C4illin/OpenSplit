@@ -196,8 +196,8 @@ const AmountStep = withForm({
               onBlur={field.handleBlur}
               onChange={(e) => field.handleChange(e.target.value)}
               className="
-                w-full [appearance:textfield] bg-transparent text-center
-                text-5xl font-bold tracking-tight outline-none
+                w-full [appearance:textfield] bg-transparent text-center text-5xl font-bold
+                tracking-tight outline-none
                 placeholder:text-muted-foreground/40
                 [&::-webkit-inner-spin-button]:appearance-none
                 [&::-webkit-outer-spin-button]:appearance-none
@@ -251,8 +251,7 @@ const TitleStep = withForm({
               onBlur={field.handleBlur}
               onChange={(e) => field.handleChange(e.target.value)}
               className="
-                w-full bg-transparent text-center text-3xl font-semibold
-                tracking-tight outline-none
+                w-full bg-transparent text-center text-3xl font-semibold tracking-tight outline-none
                 placeholder:text-muted-foreground/40
               "
             />

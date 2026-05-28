@@ -162,11 +162,7 @@ function RouteComponent() {
                     >
                       <Card>
                         <CardHeader className="px-4 py-3">
-                          <CardTitle
-                            className="
-                              flex items-center justify-between text-base
-                            "
-                          >
+                          <CardTitle className="flex items-center justify-between text-base">
                             <span>{expense.title}</span>
                             <span className="font-semibold">
                               {formatAmount(expense.amount, expense.currency)}
@@ -176,8 +172,7 @@ function RouteComponent() {
                         <CardContent className="px-4 pt-0 pb-3">
                           <div
                             className="
-                              flex items-center justify-between text-sm
-                              text-muted-foreground
+                              flex items-center justify-between text-sm text-muted-foreground
                             "
                           >
                             <span>

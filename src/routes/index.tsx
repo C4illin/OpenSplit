@@ -36,11 +36,7 @@ function RouteComponent() {
   };
 
   return (
-    <Wrapper
-      className="
-      flex min-h-screen flex-col items-center justify-center gap-5
-    "
-    >
+    <Wrapper className="flex min-h-screen flex-col items-center justify-center gap-5">
       <h1 className="mb-5 text-7xl font-black">OpenSplit</h1>
       <Button onClick={handleLogin} disabled={isAuthenticated || finalizing} size="lg" className="">
         {finalizing ? "Signing in…" : "Sign in with Google"}

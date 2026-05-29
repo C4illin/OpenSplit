@@ -19,7 +19,7 @@ import { useCreateGroup, useGroups } from "@/hooks/useApi";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Plus, User } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/overview")({
@@ -118,7 +118,14 @@ function RouteComponent() {
     <>
       <Header>
         <h1>Your Groups</h1>
-        <GroupDialog />
+        <div className="flex items-center gap-2">
+          <Link to="/profile">
+            <Button variant="ghost" size="icon" aria-label="Profile">
+              <User size={20} />
+            </Button>
+          </Link>
+          <GroupDialog />
+        </div>
       </Header>
       <Wrapper className="flex flex-col gap-4">
         {!groups?.length ? (

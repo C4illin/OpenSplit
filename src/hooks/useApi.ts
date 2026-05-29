@@ -1,5 +1,6 @@
 import type {
   ExpensesResponse,
+  ExternalauthsResponse,
   GroupsResponse,
   InvitesResponse,
   SplitsResponse,
@@ -218,6 +219,47 @@ export const useDeleteExpense = () => {
       await queryClient.invalidateQueries({
         queryKey: ["splits", variables.group],
       });
+    },
+  });
+};
+
+// Profile
+
+export const useCurrentUser = () => {
+  const userId = pb.authStore.record?.id;
+  return useQuery({
+    queryKey: ["users", userId],
+    queryFn: async () => {
+      return await pb.collection("users").getOne<UsersResponse>(userId!);
+    },
+    enabled: !!userId,
+  });
+};
+
+export const useExternalAuths = () => {
+  const userId = pb.authStore.record?.id;
+  const collectionId = pb.authStore.record?.collectionId;
+  return useQuery({
+    queryKey: ["users", userId, "externalAuths", collectionId],
+    queryFn: async () => {
+      return await pb.collection("_externalAuths").getFullList<ExternalauthsResponse>({
+        filter: `recordRef = "${userId}" && collectionRef = "${collectionId}"`,
+      });
+    },
+    enabled: !!userId && !!collectionId,
+  });
+};
+
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { name?: string; swish?: string }) => {
+      const userId = pb.authStore.record?.id;
+      if (!userId) throw new Error("Not authenticated");
+      return await pb.collection("users").update<UsersResponse>(userId, data);
+    },
+    onSuccess: async (record) => {
+      await queryClient.invalidateQueries({ queryKey: ["users", record.id] });
     },
   });
 };

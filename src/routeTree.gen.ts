@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OverviewRouteImport } from './routes/overview'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
@@ -16,6 +17,11 @@ import { Route as GroupIdIndexRouteImport } from './routes/group.$id/index'
 import { Route as GroupIdAddRouteImport } from './routes/group.$id/add'
 import { Route as GroupIdExpenseExpenseIdRouteImport } from './routes/group.$id/expense.$expenseId'
 
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OverviewRoute = OverviewRouteImport.update({
   id: '/overview',
   path: '/overview',
@@ -50,6 +56,7 @@ const GroupIdExpenseExpenseIdRoute = GroupIdExpenseExpenseIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/overview': typeof OverviewRoute
+  '/profile': typeof ProfileRoute
   '/invite/$token': typeof InviteTokenRoute
   '/group/$id/add': typeof GroupIdAddRoute
   '/group/$id/': typeof GroupIdIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/overview': typeof OverviewRoute
+  '/profile': typeof ProfileRoute
   '/invite/$token': typeof InviteTokenRoute
   '/group/$id/add': typeof GroupIdAddRoute
   '/group/$id': typeof GroupIdIndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/overview': typeof OverviewRoute
+  '/profile': typeof ProfileRoute
   '/invite/$token': typeof InviteTokenRoute
   '/group/$id/add': typeof GroupIdAddRoute
   '/group/$id/': typeof GroupIdIndexRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/overview'
+    | '/profile'
     | '/invite/$token'
     | '/group/$id/add'
     | '/group/$id/'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/overview'
+    | '/profile'
     | '/invite/$token'
     | '/group/$id/add'
     | '/group/$id'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/overview'
+    | '/profile'
     | '/invite/$token'
     | '/group/$id/add'
     | '/group/$id/'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OverviewRoute: typeof OverviewRoute
+  ProfileRoute: typeof ProfileRoute
   InviteTokenRoute: typeof InviteTokenRoute
   GroupIdAddRoute: typeof GroupIdAddRoute
   GroupIdIndexRoute: typeof GroupIdIndexRoute
@@ -110,6 +123,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/overview': {
       id: '/overview'
       path: '/overview'
@@ -158,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OverviewRoute: OverviewRoute,
+  ProfileRoute: ProfileRoute,
   InviteTokenRoute: InviteTokenRoute,
   GroupIdAddRoute: GroupIdAddRoute,
   GroupIdIndexRoute: GroupIdIndexRoute,

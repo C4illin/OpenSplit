@@ -11,7 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/profile")({
   beforeLoad: () => {
@@ -32,6 +33,7 @@ function RouteComponent() {
   const updateProfile = useUpdateProfile();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [hasSaved, setHasSaved] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -39,10 +41,13 @@ function RouteComponent() {
       swish: user?.swish ?? "",
     },
     onSubmit: async ({ value }) => {
-      await updateProfile.mutateAsync({
+      const sanitized = {
         name: value.name,
-        swish: value.swish,
-      });
+        swish: value.swish.replace(/[\s-]/g, ""),
+      };
+      await updateProfile.mutateAsync(sanitized);
+      form.reset(sanitized);
+      setHasSaved(true);
     },
   });
 
@@ -141,7 +146,8 @@ function RouteComponent() {
                 validators={{
                   onChange: ({ value }) => {
                     if (!value) return undefined;
-                    if (!/^[+0-9\s-]{6,20}$/.test(value)) {
+                    const cleaned = value.replace(/[\s-]/g, "");
+                    if (!/^\+?\d{8,16}$/.test(cleaned)) {
                       return "Enter a valid Swish number";
                     }
                     return undefined;
@@ -169,10 +175,21 @@ function RouteComponent() {
                 )}
               </form.Field>
 
-              <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-                {([canSubmit, isSubmitting]) => (
-                  <Button type="submit" disabled={!canSubmit || isSubmitting}>
-                    {isSubmitting ? "Saving..." : "Save"}
+              <form.Subscribe
+                selector={(state) => [state.canSubmit, state.isSubmitting, state.isDirty]}
+              >
+                {([canSubmit, isSubmitting, isDirty]) => (
+                  <Button type="submit" disabled={!canSubmit || isSubmitting || !isDirty}>
+                    {isSubmitting ? (
+                      "Saving..."
+                    ) : hasSaved && !isDirty ? (
+                      <>
+                        <Check size={16} />
+                        Saved
+                      </>
+                    ) : (
+                      "Save"
+                    )}
                   </Button>
                 )}
               </form.Subscribe>

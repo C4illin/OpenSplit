@@ -14,6 +14,7 @@ export const Collections = {
 	Expenses: "expenses",
 	Groups: "groups",
 	Invites: "invites",
+	Settlements: "settlements",
 	Splits: "splits",
 	Users: "users",
 } as const
@@ -125,6 +126,18 @@ export type InvitesRecord = {
 	updated: IsoAutoDateString
 }
 
+export type SettlementsRecord = {
+	amount?: number
+	confirmedAt?: IsoDateString
+	created: IsoAutoDateString
+	currency?: string
+	from?: RecordIdString
+	group?: RecordIdString
+	id: string
+	to?: RecordIdString
+	updated: IsoAutoDateString
+}
+
 export type SplitsRecord = {
 	created: IsoAutoDateString
 	expense?: RecordIdString
@@ -157,6 +170,7 @@ export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> &
 export type ExpensesResponse<Texpand = unknown> = Required<ExpensesRecord> & BaseSystemFields<Texpand>
 export type GroupsResponse<Texpand = unknown> = Required<GroupsRecord> & BaseSystemFields<Texpand>
 export type InvitesResponse<Texpand = unknown> = Required<InvitesRecord> & BaseSystemFields<Texpand>
+export type SettlementsResponse<Texpand = unknown> = Required<SettlementsRecord> & BaseSystemFields<Texpand>
 export type SplitsResponse<Texpand = unknown> = Required<SplitsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
@@ -171,6 +185,7 @@ export type CollectionRecords = {
 	expenses: ExpensesRecord
 	groups: GroupsRecord
 	invites: InvitesRecord
+	settlements: SettlementsRecord
 	splits: SplitsRecord
 	users: UsersRecord
 }
@@ -184,6 +199,7 @@ export type CollectionResponses = {
 	expenses: ExpensesResponse
 	groups: GroupsResponse
 	invites: InvitesResponse
+	settlements: SettlementsResponse
 	splits: SplitsResponse
 	users: UsersResponse
 }

@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Wrapper } from "@/components/Wrapper";
 import { useExpenses, useGroup, useSplits } from "@/hooks/useApi";
+import { computeBalances } from "@/lib/balances";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { IsoDateString } from "@/types/pocketbase-types.gen";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Plus } from "lucide-react";
+import { ArrowRightLeft, Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 export const Route = createFileRoute("/group/$id/")({
@@ -39,30 +40,10 @@ function RouteComponent() {
   const { data: splits } = useSplits(id);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
-  // Calculate net balance per member: positive = is owed, negative = owes
   const balances = useMemo(() => {
     const members = group?.expand?.members ?? [];
     if (!expenses || !splits || !members.length) return [];
-
-    const net: Record<string, number> = {};
-    for (const m of members) net[m.id] = 0;
-
-    for (const expense of expenses) {
-      // The payer is owed the full amount
-      net[expense.paidBy] = (net[expense.paidBy] ?? 0) + expense.amount;
-
-      // Each split user owes their share
-      const expenseSplits = splits.filter((s) => s.expense === expense.id);
-      for (const split of expenseSplits) {
-        const owed = (split.percentage / 100) * expense.amount;
-        net[split.user] = (net[split.user] ?? 0) - owed;
-      }
-    }
-
-    return members.map((m) => ({
-      member: m,
-      balance: Math.round((net[m.id] ?? 0) * 100) / 100,
-    }));
+    return computeBalances(members, expenses, splits);
   }, [group?.expand?.members, expenses, splits]);
 
   const parentRef = useRef<HTMLDivElement>(null);
@@ -122,6 +103,16 @@ function RouteComponent() {
               </li>
             ))}
           </ul>
+        )}
+        {balances.length > 0 && (
+          <div className="px-4 pb-2">
+            <Link to="/group/$id/settle" params={{ id }}>
+              <Button variant="outline" size="sm" className="w-full">
+                <ArrowRightLeft size={16} />
+                Settle up
+              </Button>
+            </Link>
+          </div>
         )}
       </Wrapper>
 

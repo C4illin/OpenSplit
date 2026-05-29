@@ -5,21 +5,23 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite-plus";
 
+const ignorePatterns = [
+  "dist",
+  "**/*.gen.ts",
+  "src/components/ui/*",
+  "pb_migrations",
+  "pb_hooks",
+  "pb_data",
+  "node_modules",
+];
+
 // https://vite.dev/config/
 export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
   fmt: {
-    ignorePatterns: [
-      "dist",
-      "**/*.gen.ts",
-      "src/components/ui/*",
-      "pb_migrations",
-      "pb_hooks",
-      "pb_data",
-      "node_modules",
-    ],
+    ignorePatterns,
   },
   lint: {
     plugins: ["oxc", "typescript", "unicorn", "react"],
@@ -35,15 +37,7 @@ export default defineConfig({
         entryPoint: "./src/styles.css",
       },
     },
-    ignorePatterns: [
-      "dist",
-      "**/*.gen.ts",
-      "src/components/ui/*",
-      "pb_migrations",
-      "pb_hooks",
-      "pb_data",
-      "node_modules",
-    ],
+    ignorePatterns,
     rules: {
       "@tanstack/query/exhaustive-deps": "error",
       "@tanstack/query/no-rest-destructuring": "warn",
@@ -165,21 +159,6 @@ export default defineConfig({
           "prefer-const": "error",
           "prefer-rest-params": "error",
           "prefer-spread": "error",
-        },
-      },
-      {
-        files: ["**/*.{ts,tsx}"],
-        rules: {
-          "react/only-export-components": [
-            "error",
-            {
-              customHOCs: ["Route"],
-            },
-          ],
-        },
-        env: {
-          es2020: true,
-          browser: true,
         },
       },
     ],

@@ -8,10 +8,10 @@ OpenSplit — a group expense splitting app built with React 19 + TypeScript, Vi
 
 ## Commands
 
-- `npm run dev` — start Vite dev server
-- `npm run build` — TypeScript check + Vite production build
-- `npm run lint` — run ESLint
-- `npm run typegen` — regenerate PocketBase types after schema changes (outputs to `src/types/pocketbase-types.gen.ts`)
+- `vp run dev` — start Vite dev server
+- `vp run build` — TypeScript check + Vite production build
+- `vp run lint` — run ESLint
+- `vp run typegen` — regenerate PocketBase types after schema changes (outputs to `src/types/pocketbase-types.gen.ts`)
 
 No test framework is configured.
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Wrapper } from "@/components/Wrapper";
-import { useExpenses, useGroup, useSplits } from "@/hooks/useApi";
+import { useExpenses, useGroup, useSettlements, useSplits } from "@/hooks/useApi";
 import { computeBalances } from "@/lib/balances";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { IsoDateString } from "@/types/pocketbase-types.gen";
@@ -38,13 +38,14 @@ function RouteComponent() {
   const { data: group } = useGroup(id);
   const { data: expenses, isLoading } = useExpenses(id);
   const { data: splits } = useSplits(id);
+  const { data: settlements } = useSettlements(id);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   const balances = useMemo(() => {
     const members = group?.expand?.members ?? [];
     if (!expenses || !splits || !members.length) return [];
-    return computeBalances(members, expenses, splits);
-  }, [group?.expand?.members, expenses, splits]);
+    return computeBalances(members, expenses, splits, settlements);
+  }, [group?.expand?.members, expenses, splits, settlements]);
 
   const parentRef = useRef<HTMLDivElement>(null);
 

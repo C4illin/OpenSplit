@@ -3,6 +3,7 @@ import type {
   ExternalauthsResponse,
   GroupsResponse,
   InvitesResponse,
+  SettlementsResponse,
   SplitsResponse,
   UsersResponse,
 } from "@/types/pocketbase-types.gen";
@@ -218,6 +219,51 @@ export const useDeleteExpense = () => {
       });
       await queryClient.invalidateQueries({
         queryKey: ["splits", variables.group],
+      });
+    },
+  });
+};
+
+// Settlements
+
+type SettlementsExpand = {
+  from?: UsersResponse;
+  to?: UsersResponse;
+};
+
+export const useSettlements = (groupId: string) => {
+  return useQuery({
+    queryKey: ["settlements", groupId],
+    queryFn: async () => {
+      return await pb
+        .collection("settlements")
+        .getFullList<SettlementsResponse<SettlementsExpand>>({
+          filter: `group = "${groupId}"`,
+          sort: "-created",
+          expand: "from,to",
+        });
+    },
+    enabled: !!groupId,
+  });
+};
+
+type CreateSettlementData = {
+  group: string;
+  from: string;
+  to: string;
+  amount: number;
+  currency: string;
+};
+
+export const useCreateSettlement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: CreateSettlementData) => {
+      return await pb.collection("settlements").create<SettlementsResponse>(data);
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: ["settlements", variables.group],
       });
     },
   });

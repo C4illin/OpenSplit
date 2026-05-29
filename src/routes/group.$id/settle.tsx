@@ -3,13 +3,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wrapper } from "@/components/Wrapper";
-import { useExpenses, useGroup, useSplits } from "@/hooks/useApi";
+import {
+  useCreateSettlement,
+  useExpenses,
+  useGroup,
+  useSettlements,
+  useSplits,
+} from "@/hooks/useApi";
 import { computeBalances, computeSettlements, type Settlement } from "@/lib/balances";
 import { availableMethods } from "@/lib/payments";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { UsersResponse } from "@/types/pocketbase-types.gen";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { useMemo } from "react";
 
 export const Route = createFileRoute("/group/$id/settle")({
@@ -36,11 +42,15 @@ function SettlementRow({
   currency,
   currentUserId,
   groupName,
+  onMarkPaid,
+  isMarking,
 }: {
   settlement: Settlement;
   currency: string;
   currentUserId: string;
   groupName: string;
+  onMarkPaid: (settlement: Settlement) => void;
+  isMarking: boolean;
 }) {
   const { from, to, amount } = settlement;
   const viewerIsDebtor = from.id === currentUserId;
@@ -79,6 +89,15 @@ function SettlementRow({
                 </Button>
               ))
             )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onMarkPaid(settlement)}
+              disabled={isMarking}
+            >
+              <Check size={16} />
+              {isMarking ? "Recording..." : "Mark as paid"}
+            </Button>
           </div>
         )}
       </CardContent>
@@ -91,6 +110,8 @@ function RouteComponent() {
   const { data: group } = useGroup(id);
   const { data: expenses } = useExpenses(id);
   const { data: splits } = useSplits(id);
+  const { data: pastSettlements } = useSettlements(id);
+  const createSettlement = useCreateSettlement();
   const currentUserId = pb.authStore.record?.id ?? "";
 
   const currency = expenses?.[0]?.currency ?? "SEK";
@@ -99,14 +120,24 @@ function RouteComponent() {
   const settlements = useMemo(() => {
     const members = group?.expand?.members ?? [];
     if (!expenses || !splits || !members.length) return [];
-    const balances = computeBalances(members, expenses, splits);
+    const balances = computeBalances(members, expenses, splits, pastSettlements);
     return computeSettlements(balances);
-  }, [group?.expand?.members, expenses, splits]);
+  }, [group?.expand?.members, expenses, splits, pastSettlements]);
 
   const mine = settlements.filter((s) => s.from.id === currentUserId || s.to.id === currentUserId);
   const others = settlements.filter(
     (s) => s.from.id !== currentUserId && s.to.id !== currentUserId,
   );
+
+  const handleMarkPaid = (s: Settlement) => {
+    createSettlement.mutate({
+      group: id,
+      from: s.from.id,
+      to: s.to.id,
+      amount: s.amount,
+      currency,
+    });
+  };
 
   return (
     <>
@@ -128,6 +159,8 @@ function RouteComponent() {
                     currency={currency}
                     currentUserId={currentUserId}
                     groupName={groupName}
+                    onMarkPaid={handleMarkPaid}
+                    isMarking={createSettlement.isPending}
                   />
                 ))}
               </section>
@@ -142,6 +175,8 @@ function RouteComponent() {
                     currency={currency}
                     currentUserId={currentUserId}
                     groupName={groupName}
+                    onMarkPaid={handleMarkPaid}
+                    isMarking={createSettlement.isPending}
                   />
                 ))}
               </section>

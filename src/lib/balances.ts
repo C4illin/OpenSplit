@@ -1,4 +1,9 @@
-import type { ExpensesResponse, SplitsResponse, UsersResponse } from "@/types/pocketbase-types.gen";
+import type {
+  ExpensesResponse,
+  SettlementsResponse,
+  SplitsResponse,
+  UsersResponse,
+} from "@/types/pocketbase-types.gen";
 
 export type Balance = {
   member: UsersResponse;
@@ -17,6 +22,7 @@ export function computeBalances(
   members: UsersResponse[],
   expenses: ExpensesResponse[],
   splits: SplitsResponse[],
+  settlements: SettlementsResponse[] = [],
 ): Balance[] {
   const net: Record<string, number> = {};
   for (const m of members) net[m.id] = 0;
@@ -28,6 +34,12 @@ export function computeBalances(
       const owed = (split.percentage / 100) * expense.amount;
       net[split.user] = (net[split.user] ?? 0) - owed;
     }
+  }
+
+  for (const s of settlements) {
+    if (!s.from || !s.to) continue;
+    net[s.from] = (net[s.from] ?? 0) + s.amount;
+    net[s.to] = (net[s.to] ?? 0) - s.amount;
   }
 
   return members.map((m) => ({

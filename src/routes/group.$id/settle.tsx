@@ -11,6 +11,7 @@ import {
   useSplits,
 } from "@/hooks/useApi";
 import { computeBalances, computeSettlements, type Settlement } from "@/lib/balances";
+import { formatAmount } from "@/lib/format";
 import { availableMethods } from "@/lib/payments";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { UsersResponse } from "@/types/pocketbase-types.gen";
@@ -66,9 +67,7 @@ function SettlementRow({
           <ArrowRight size={16} className="text-muted-foreground" />
           <MemberAvatar member={to} />
           <span className="text-sm">{to.name || to.username}</span>
-          <span className="ml-auto font-medium">
-            {amount.toFixed(2)} {currency}
-          </span>
+          <span className="ml-auto font-medium">{formatAmount(amount, currency)}</span>
         </div>
         {viewerIsDebtor && (
           <div className="flex flex-wrap gap-2">

@@ -8,6 +8,7 @@ import { Wrapper } from "@/components/Wrapper";
 import { useExpenses, useGroup, useSettlements, useSplits } from "@/hooks/useApi";
 import { useAuth } from "@/hooks/useAuth";
 import { computeBalances } from "@/lib/balances";
+import { formatAmount } from "@/lib/format";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { IsoDateString } from "@/types/pocketbase-types.gen";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
@@ -27,18 +28,6 @@ export const Route = createFileRoute("/group/$id/")({
 function formatDate(dateStr: IsoDateString) {
   const date = new Date(dateStr);
   return date.toLocaleDateString();
-}
-
-function formatAmount(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-      trailingZeroDisplay: "stripIfInteger",
-    }).format(amount);
-  } catch {
-    return `${amount} ${currency}`;
-  }
 }
 
 function RouteComponent() {

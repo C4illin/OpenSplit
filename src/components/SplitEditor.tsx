@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { withForm } from "@/hooks/useAppForm";
 import { expenseFormDefaults } from "@/lib/expense-form";
+import { formatAmount } from "@/lib/format";
 import { getAvatarUrl } from "@/lib/pocketbase";
 import { cn } from "@/lib/utils";
 import { Check, RotateCcw } from "lucide-react";
@@ -311,11 +312,7 @@ export const SplitEditor = withForm({
                             maximumFractionDigits: 1,
                             useGrouping: false,
                           }).format(Math.round(totalPct * 10) / 10)}%`
-                        : new Intl.NumberFormat(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                            useGrouping: false,
-                          }).format(totalAmount)}
+                        : formatAmount(totalAmount, form.state.values.currency)}
                     </span>
                   </div>
                 </div>

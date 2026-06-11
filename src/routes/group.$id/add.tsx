@@ -1,5 +1,6 @@
 import { SplitEditor } from "@/components/SplitEditor";
 import { expenseFormDefaults } from "@/lib/expense-form";
+import { formatAmount } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Wrapper } from "@/components/Wrapper";
@@ -226,6 +227,14 @@ const AmountStep = withForm({
           </div>
         )}
       </form.Field>
+
+      <form.Subscribe selector={(s) => [s.values.amount, s.values.currency] as const}>
+        {([amount, currency]) => {
+          const parsed = parseFloat(amount);
+          if (isNaN(parsed) || parsed <= 0) return null;
+          return <p className="text-sm text-muted-foreground">{formatAmount(parsed, currency)}</p>;
+        }}
+      </form.Subscribe>
     </div>
   ),
 });

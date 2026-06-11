@@ -106,13 +106,13 @@ function RouteComponent() {
           </ul>
         )}
         {balances.length > 0 && (
-          <div className="px-4 pb-2">
-            <Link to="/group/$id/settle" params={{ id }}>
-              <Button variant="outline" size="sm" className="w-full">
+          <div className="flex justify-end px-4 pb-3">
+            <Button variant="secondary" size="sm" asChild>
+              <Link to="/group/$id/settle" params={{ id }}>
                 <ArrowRightLeft size={16} />
                 Settle up
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         )}
       </Wrapper>

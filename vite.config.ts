@@ -206,6 +206,9 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    port: 5050,
+  },
   resolve: {
     alias: {
       "@": new URL("./src", import.meta.url).pathname,

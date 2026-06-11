@@ -6,7 +6,7 @@ RUN corepack enable pnpm
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
 RUN pnpm build
@@ -31,6 +31,6 @@ COPY ./pb_hooks /pb/pb_hooks
 # remove dev hook
 RUN rm -f /pb/pb_hooks/generateHooks.pb.js
 
-EXPOSE 8080
+EXPOSE 5050
 
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8080"]
+CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:5050"]

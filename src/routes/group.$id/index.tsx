@@ -2,10 +2,11 @@ import { Header } from "@/components/Header";
 import { InviteDialog } from "@/components/InviteDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Wrapper } from "@/components/Wrapper";
 import { useExpenses, useGroup, useSettlements, useSplits } from "@/hooks/useApi";
+import { useAuth } from "@/hooks/useAuth";
 import { computeBalances } from "@/lib/balances";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { IsoDateString } from "@/types/pocketbase-types.gen";
@@ -29,7 +30,15 @@ function formatDate(dateStr: IsoDateString) {
 }
 
 function formatAmount(amount: number, currency: string) {
-  return `${amount} ${currency}`;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      trailingZeroDisplay: "stripIfInteger",
+    }).format(amount);
+  } catch {
+    return `${amount} ${currency}`;
+  }
 }
 
 function RouteComponent() {
@@ -39,7 +48,9 @@ function RouteComponent() {
   const { data: expenses, isLoading } = useExpenses(id);
   const { data: splits } = useSplits(id);
   const { data: settlements } = useSettlements(id);
+  const { user } = useAuth();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const currency = expenses?.[0]?.currency ?? "SEK";
 
   const balances = useMemo(() => {
     const members = group?.expand?.members ?? [];
@@ -53,8 +64,8 @@ function RouteComponent() {
   const rowVirtualizer = useVirtualizer({
     count: expenses?.length ?? 0,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 128,
-    gap: 16,
+    estimateSize: () => 72,
+    gap: 12,
     // overscan: 5,
   });
 
@@ -68,41 +79,58 @@ function RouteComponent() {
       <Wrapper>
         {balances.length > 0 && (
           <ul className="flex flex-col gap-1 p-4">
-            {balances.map(({ member, balance }) => (
-              <li key={member.id} className="flex items-center gap-3">
-                <Avatar size="sm">
-                  <AvatarImage
-                    src={getAvatarUrl(member, member.avatar)}
-                    alt={member.name || member.username}
-                  />
-                  <AvatarFallback>
-                    {(member.name || member.username).charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="flex-1 truncate text-sm">{member.name || member.username}</span>
-                <span
-                  className={`
-                    text-sm font-medium
-                    ${
-                      balance > 0
-                        ? `
-                          text-green-600
-                          dark:text-green-400
-                        `
-                        : balance < 0
-                          ? `
-                            text-red-600
-                            dark:text-red-400
-                          `
-                          : `text-muted-foreground`
-                    }
-                  `}
-                >
-                  {balance > 0 ? "+" : ""}
-                  {balance.toFixed(2)} {expenses?.[0]?.currency ?? "SEK"}
-                </span>
-              </li>
-            ))}
+            {balances.map(({ member, balance }) => {
+              const isYou = member.id === user?.id;
+              return (
+                <li key={member.id} className="flex items-center gap-3">
+                  <Avatar size="sm">
+                    <AvatarImage
+                      src={getAvatarUrl(member, member.avatar)}
+                      alt={member.name || member.username}
+                    />
+                    <AvatarFallback>
+                      {(member.name || member.username).charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="flex-1 truncate text-sm">
+                    {isYou ? "You" : member.name || member.username}
+                  </span>
+                  {balance === 0 ? (
+                    <span className="text-sm text-muted-foreground">settled up</span>
+                  ) : (
+                    <span className="text-sm">
+                      <span className="text-muted-foreground">
+                        {balance > 0
+                          ? isYou
+                            ? "get back"
+                            : "gets back"
+                          : isYou
+                            ? "owe"
+                            : "owes"}{" "}
+                      </span>
+                      <span
+                        className={`
+                          font-medium
+                          ${
+                            balance > 0
+                              ? `
+                                text-green-600
+                                dark:text-green-400
+                              `
+                              : `
+                                text-red-600
+                                dark:text-red-400
+                              `
+                          }
+                        `}
+                      >
+                        {formatAmount(Math.abs(balance), currency)}
+                      </span>
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
         {balances.length > 0 && (
@@ -152,28 +180,47 @@ function RouteComponent() {
                       to="/group/$id/expense/$expenseId"
                       params={{ id: group?.id ?? "", expenseId: expense.id ?? "" }}
                     >
-                      <Card>
-                        <CardHeader className="px-4 py-3">
-                          <CardTitle className="flex items-center justify-between text-base">
-                            <span>{expense.title}</span>
-                            <span className="font-semibold">
-                              {formatAmount(expense.amount, expense.currency)}
-                            </span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-3">
-                          <div
-                            className="
-                              flex items-center justify-between text-sm text-muted-foreground
-                            "
-                          >
-                            <span>
+                      <Card
+                        className="
+                          h-full justify-center transition-colors
+                          hover:bg-muted/50
+                        "
+                      >
+                        <CardContent className="flex items-center gap-3">
+                          <Avatar size="sm">
+                            {expense.expand?.paidBy && (
+                              <AvatarImage
+                                src={getAvatarUrl(
+                                  expense.expand.paidBy,
+                                  expense.expand.paidBy.avatar,
+                                )}
+                                alt={expense.expand.paidBy.name || expense.expand.paidBy.username}
+                              />
+                            )}
+                            <AvatarFallback>
+                              {(
+                                expense.expand?.paidBy?.name ??
+                                expense.expand?.paidBy?.username ??
+                                "?"
+                              )
+                                .charAt(0)
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium">{expense.title}</p>
+                            <p className="truncate text-muted-foreground">
                               Paid by{" "}
                               {expense.expand?.paidBy?.name ??
                                 expense.expand?.paidBy?.username ??
                                 "Unknown"}
-                            </span>
-                            <span>{formatDate(expense.date)}</span>
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">
+                              {formatAmount(expense.amount, expense.currency)}
+                            </p>
+                            <p className="text-muted-foreground">{formatDate(expense.date)}</p>
                           </div>
                         </CardContent>
                       </Card>

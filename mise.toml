@@ -1,0 +1,8 @@
+[tools]
+pocketbase = "0.37.5"
+node = "24"
+pnpm = "11.6.0"
+viteplus = "latest"
+
+[env]
+_.path = ['{{config_root}}/node_modules/.bin']

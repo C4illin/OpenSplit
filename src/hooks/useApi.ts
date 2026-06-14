@@ -137,7 +137,7 @@ export const useCreateExpense = () => {
 };
 
 type GetExpenseExpand = {
-  "splits(expense)"?: SplitsResponse[];
+  splits_via_expense?: SplitsResponse[];
 };
 
 export const useGetExpense = (expenseId: string) => {
@@ -145,7 +145,7 @@ export const useGetExpense = (expenseId: string) => {
     queryKey: ["expense", expenseId],
     queryFn: async () => {
       return await pb.collection("expenses").getOne<ExpensesResponse<GetExpenseExpand>>(expenseId, {
-        expand: "splits(expense)",
+        expand: "splits_via_expense",
       });
     },
     enabled: !!expenseId,

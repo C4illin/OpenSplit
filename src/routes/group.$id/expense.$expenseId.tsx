@@ -31,7 +31,7 @@ function EditExpensePage() {
   const deleteExpense = useDeleteExpense();
   const currentUserId = pb.authStore.record?.id ?? "";
 
-  const existingSplits = expense?.expand?.["splits(expense)"] ?? [];
+  const existingSplits = expense?.expand?.splits_via_expense ?? [];
   const existingSplitIds = existingSplits.map((s) => s.id);
 
   const form = useAppForm({

@@ -19,14 +19,14 @@ export const swish: PaymentMethod = {
   name: "Swish",
   isAvailable: (payee, currency) => !!payee.swish && currency.toUpperCase() === "SEK",
   buildUrl: ({ payee, amount, message }) => {
-    const params = new URLSearchParams({
-      sw: payee.swish,
-      amt: amount.toFixed(2),
-      cur: "SEK",
-      msg: message,
-      edit: "amt,msg",
-    });
-    return `https://app.swish.nu/1/p/sw/?${params.toString()}`;
+    const params = [
+      `sw=${encodeURIComponent(payee.swish)}`,
+      `amt=${amount.toFixed(2)}`,
+      `cur=SEK`,
+      `msg=${encodeURIComponent(message.slice(0, 50))}`,
+      `edit=amt,msg`,
+    ];
+    return `https://app.swish.nu/1/p/sw/?${params.join("&")}`;
   },
 };
 

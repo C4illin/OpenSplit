@@ -8,6 +8,13 @@
       window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
         document.documentElement.classList.toggle("dark", e.matches);
       });
+      window.addEventListener("vite:preloadError", (event) => {
+        var KEY = "vite-preload-reload";
+        var last = Number(sessionStorage.getItem(KEY) || 0);
+        if (Date.now() - last < 10000) return;
+        sessionStorage.setItem(KEY, String(Date.now()));
+        window.location.reload();
+      });
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />

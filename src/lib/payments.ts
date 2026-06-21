@@ -14,6 +14,16 @@ export type PaymentMethod = {
   buildUrl: (ctx: PaymentContext) => string;
 };
 
+// Swish permits letters (a-ö/A-Ö), digits and the special characters ! ? ( ) , . - : ; .
+// See https://developer.swish.nu/api/payment-request/v1
+function sanitizeSwishMessage(message: string) {
+  return message
+    .replace(/[^0-9A-Za-zÅÄÖåäö !?(),.:;-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 50);
+}
+
 export const swish: PaymentMethod = {
   id: "swish",
   name: "Swish",
@@ -23,7 +33,7 @@ export const swish: PaymentMethod = {
       `sw=${encodeURIComponent(payee.swish)}`,
       `amt=${amount.toFixed(2)}`,
       `cur=SEK`,
-      `msg=${encodeURIComponent(message.slice(0, 50))}`,
+      `msg=${encodeURIComponent(sanitizeSwishMessage(message))}`,
       `src=qr`,
     ];
     return `https://app.swish.nu/1/p/sw/?${params.join("&")}`;

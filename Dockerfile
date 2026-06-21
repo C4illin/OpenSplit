@@ -14,7 +14,7 @@ RUN pnpm build
 # Stage 2: PocketBase + static frontend
 FROM alpine:latest
 
-ARG PB_VERSION=0.37.5
+ARG PB_VERSION=0.39.4
 
 RUN apk add --no-cache \
   unzip \

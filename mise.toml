@@ -1,5 +1,5 @@
 [tools]
-pocketbase = "0.37.5"
+pocketbase = "0.39.4"
 node = "24"
 pnpm = "11.6.0"
 viteplus = "latest"

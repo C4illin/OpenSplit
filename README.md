@@ -2,6 +2,6 @@
 
 ## Development
 
-0. Install git, node.js, vite-plus and pocketbase.
-1. Clone repo and `vp i`
+0. Install git and [Mise](https://mise.jdx.dev/)
+1. Clone repo, `mise up` and then `vp i`
 2. Start development server with `vp run dev`

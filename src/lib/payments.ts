@@ -24,7 +24,7 @@ export const swish: PaymentMethod = {
       `amt=${amount.toFixed(2)}`,
       `cur=SEK`,
       `msg=${encodeURIComponent(message.slice(0, 50))}`,
-      `edit=amt,msg`,
+      `src=qr`,
     ];
     return `https://app.swish.nu/1/p/sw/?${params.join("&")}`;
   },

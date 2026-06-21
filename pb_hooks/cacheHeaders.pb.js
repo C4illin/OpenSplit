@@ -8,7 +8,7 @@ routerUse((e) => {
     // Content-hashed: filename changes when content changes, so cache hard.
     e.response.header().set("Cache-Control", "public, max-age=31536000, immutable");
   } else if (
-    e.request.method === "GET" &&
+    (e.request.method === "GET" || e.request.method === "HEAD") &&
     !path.startsWith("/api/") &&
     !path.startsWith("/_/")
   ) {

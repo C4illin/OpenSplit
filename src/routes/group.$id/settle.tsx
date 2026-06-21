@@ -56,7 +56,7 @@ function SettlementRow({
   const { from, to, amount } = settlement;
   const viewerIsDebtor = from.id === currentUserId;
   const methods = viewerIsDebtor ? availableMethods(to, currency) : [];
-  const message = `${groupName} — settlement`;
+  const message = `OpenSplit: ${groupName}`;
 
   return (
     <Card size="sm">

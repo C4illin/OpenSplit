@@ -30,8 +30,14 @@ export function computeBalances(
   for (const expense of expenses) {
     net[expense.paidBy] = (net[expense.paidBy] ?? 0) + expense.amount;
     const expenseSplits = splits.filter((s) => s.expense === expense.id);
+    // Normalize by the actual percentage total so the expense is always fully
+    // allocated, even when stored percentages don't sum to exactly 100 (a 3-way
+    // split stores 33.33 x3 = 99.99, which would otherwise leave a sliver
+    // permanently owed to the payer).
+    const totalPct = expenseSplits.reduce((sum, s) => sum + s.percentage, 0);
+    if (totalPct === 0) continue;
     for (const split of expenseSplits) {
-      const owed = (split.percentage / 100) * expense.amount;
+      const owed = (split.percentage / totalPct) * expense.amount;
       net[split.user] = (net[split.user] ?? 0) - owed;
     }
   }
@@ -42,10 +48,31 @@ export function computeBalances(
     net[s.to] = (net[s.to] ?? 0) - s.amount;
   }
 
-  return members.map((m) => ({
-    member: m,
-    balance: Math.round((net[m.id] ?? 0) * 100) / 100,
-  }));
+  return roundToZeroSum(members, net);
+}
+
+// Round each member's balance to whole öre while preserving the invariant that
+// all balances sum to exactly zero. Rounding each balance independently breaks
+// that invariant and leaves an unpayable remainder in computeSettlements, so we
+// distribute the rounding drift via the largest-remainder method.
+function roundToZeroSum(members: UsersResponse[], net: Record<string, number>): Balance[] {
+  const entries = members.map((m) => {
+    const exactOre = (net[m.id] ?? 0) * 100;
+    const floorOre = Math.floor(exactOre);
+    return { member: m, ore: floorOre, frac: exactOre - floorOre };
+  });
+
+  const totalExactOre = members.reduce((sum, m) => sum + (net[m.id] ?? 0) * 100, 0);
+  const sumFloorOre = entries.reduce((sum, e) => sum + e.ore, 0);
+  const remainder = Math.round(totalExactOre) - sumFloorOre;
+
+  // Hand the leftover öre to the balances with the largest fractional parts.
+  const order = entries.map((_, i) => i).sort((a, b) => entries[b].frac - entries[a].frac);
+  for (let k = 0; k < remainder; k++) {
+    entries[order[k % order.length]].ore += 1;
+  }
+
+  return entries.map((e) => ({ member: e.member, balance: e.ore / 100 }));
 }
 
 export function computeSettlements(balances: Balance[]): Settlement[] {

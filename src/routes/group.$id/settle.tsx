@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Wrapper } from "@/components/Wrapper";
 import {
   useCreateSettlement,
+  useDeleteSettlement,
   useExpenses,
   useGroup,
   useSettlements,
@@ -12,12 +13,25 @@ import {
 } from "@/hooks/useApi";
 import { computeBalances, computeSettlements, type Settlement } from "@/lib/balances";
 import { formatAmount } from "@/lib/format";
-import { availableMethods } from "@/lib/payments";
+import { availableMethods, type PaymentMethod } from "@/lib/payments";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { UsersResponse } from "@/types/pocketbase-types.gen";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+// Settlement details stashed before app-switching to Swish, read back when the
+// app-switch callback returns us to this page.
+const PENDING_KEY = "swish-pending-settlement";
+
+type PendingSettlement = {
+  group: string;
+  from: string;
+  to: string;
+  amount: number;
+  currency: string;
+  label: string;
+};
 
 export const Route = createFileRoute("/group/$id/settle")({
   beforeLoad: () => {
@@ -42,21 +56,20 @@ function SettlementRow({
   settlement,
   currency,
   currentUserId,
-  groupName,
   onMarkPaid,
+  onPay,
   isMarking,
 }: {
   settlement: Settlement;
   currency: string;
   currentUserId: string;
-  groupName: string;
   onMarkPaid: (settlement: Settlement) => void;
+  onPay: (settlement: Settlement, method: PaymentMethod) => void;
   isMarking: boolean;
 }) {
   const { from, to, amount } = settlement;
   const viewerIsDebtor = from.id === currentUserId;
   const methods = viewerIsDebtor ? availableMethods(to, currency) : [];
-  const message = `OpenSplit: ${groupName}`;
 
   return (
     <Card size="sm">
@@ -77,14 +90,8 @@ function SettlementRow({
               </span>
             ) : (
               methods.map((method) => (
-                <Button key={method.id} size="sm" asChild>
-                  <a
-                    href={method.buildUrl({ payee: to, amount, currency, message })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Pay with {method.name}
-                  </a>
+                <Button key={method.id} size="sm" onClick={() => onPay(settlement, method)}>
+                  Pay with {method.name}
                 </Button>
               ))
             )}
@@ -111,7 +118,13 @@ function RouteComponent() {
   const { data: splits } = useSplits(id);
   const { data: pastSettlements } = useSettlements(id);
   const createSettlement = useCreateSettlement();
+  const deleteSettlement = useDeleteSettlement();
   const currentUserId = pb.authStore.record?.id ?? "";
+
+  // Set after a settlement is recorded so we can offer to undo it — the Swish
+  // callback is only an app-return signal, not a verified payment, so marking
+  // paid is always optimistic.
+  const [undo, setUndo] = useState<{ id: string; label: string } | null>(null);
 
   const currency = expenses?.[0]?.currency ?? "SEK";
   const groupName = group?.name ?? "Group";
@@ -128,14 +141,79 @@ function RouteComponent() {
     (s) => s.from.id !== currentUserId && s.to.id !== currentUserId,
   );
 
+  const recordPaid = async (payload: PendingSettlement) => {
+    const { label, ...data } = payload;
+    const rec = await createSettlement.mutateAsync(data);
+    setUndo({ id: rec.id, label });
+  };
+
   const handleMarkPaid = (s: Settlement) => {
-    createSettlement.mutate({
+    void recordPaid({
       group: id,
       from: s.from.id,
       to: s.to.id,
       amount: s.amount,
       currency,
+      label: `Marked paid to ${s.to.name || s.to.username}`,
     });
+  };
+
+  // Tapping "Pay with Swish" stashes the settlement, then app-switches to Swish.
+  // Swish returns to this page (callbackurl) with a `result` query param, which
+  // the effect below reads to optimistically record the payment.
+  const handlePay = (s: Settlement, method: PaymentMethod) => {
+    const pending: PendingSettlement = {
+      group: id,
+      from: s.from.id,
+      to: s.to.id,
+      amount: s.amount,
+      currency,
+      label: `Marked paid to ${s.to.name || s.to.username}`,
+    };
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+    const callbackUrl = window.location.origin + window.location.pathname;
+    window.location.href = method.buildUrl({
+      payee: s.to,
+      amount: s.amount,
+      currency,
+      message: `OpenSplit: ${groupName}`,
+      callbackUrl,
+    });
+  };
+
+  // Handle the Swish app-switch callback on return to this page.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("result")) return;
+    const result = params.get("result");
+    const raw = sessionStorage.getItem(PENDING_KEY);
+    sessionStorage.removeItem(PENDING_KEY);
+    // Strip the result param so a manual refresh doesn't re-record.
+    window.history.replaceState(null, "", window.location.pathname);
+    if (!raw) return;
+    try {
+      const pending = JSON.parse(raw) as PendingSettlement;
+      // TODO: gate on the success value once we know it. For now surface the
+      // raw Swish callback result in the banner so we can read it from a real
+      // payment (and undo if it wasn't actually a success).
+      void recordPaid({ ...pending, label: `${pending.label} · result=${result}` });
+    } catch {
+      // Ignore malformed pending data.
+    }
+    // Run once on mount; mutateAsync is stable across renders.
+    // eslint-disable-next-line @tanstack/query/exhaustive-deps
+  }, []);
+
+  // Auto-dismiss the undo prompt.
+  useEffect(() => {
+    if (!undo) return;
+    const timer = setTimeout(() => setUndo(null), 8000);
+    return () => clearTimeout(timer);
+  }, [undo]);
+
+  const handleUndo = () => {
+    if (!undo) return;
+    void deleteSettlement.mutateAsync({ id: undo.id, group: id }).then(() => setUndo(null));
   };
 
   return (
@@ -157,8 +235,8 @@ function RouteComponent() {
                     settlement={s}
                     currency={currency}
                     currentUserId={currentUserId}
-                    groupName={groupName}
                     onMarkPaid={handleMarkPaid}
+                    onPay={handlePay}
                     isMarking={createSettlement.isPending}
                   />
                 ))}
@@ -173,8 +251,8 @@ function RouteComponent() {
                     settlement={s}
                     currency={currency}
                     currentUserId={currentUserId}
-                    groupName={groupName}
                     onMarkPaid={handleMarkPaid}
+                    onPay={handlePay}
                     isMarking={createSettlement.isPending}
                   />
                 ))}
@@ -183,6 +261,24 @@ function RouteComponent() {
           </>
         )}
       </Wrapper>
+      {undo && (
+        <div
+          className="
+            fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-between gap-3
+            rounded-lg border bg-card px-4 py-3 shadow-lg
+          "
+        >
+          <span className="text-sm">{undo.label}</span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleUndo}
+            disabled={deleteSettlement.isPending}
+          >
+            {deleteSettlement.isPending ? "Undoing…" : "Undo"}
+          </Button>
+        </div>
+      )}
     </>
   );
 }

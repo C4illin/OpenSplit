@@ -269,6 +269,20 @@ export const useCreateSettlement = () => {
   });
 };
 
+export const useDeleteSettlement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { id: string; group: string }) => {
+      await pb.collection("settlements").delete(vars.id);
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: ["settlements", variables.group],
+      });
+    },
+  });
+};
+
 // Profile
 
 export const useCurrentUser = () => {

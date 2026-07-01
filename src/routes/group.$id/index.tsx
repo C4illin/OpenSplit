@@ -39,7 +39,7 @@ function RouteComponent() {
   const { data: settlements } = useSettlements(id);
   const { user } = useAuth();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const currency = expenses?.[0]?.currency ?? "SEK";
+  const currency = group?.currency || "sek";
 
   const balances = useMemo(() => {
     const members = group?.expand?.members ?? [];
@@ -53,7 +53,7 @@ function RouteComponent() {
   const rowVirtualizer = useVirtualizer({
     count: expenses?.length ?? 0,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 72,
+    estimateSize: () => 88,
     gap: 12,
     // overscan: 5,
   });
@@ -204,12 +204,19 @@ function RouteComponent() {
                                 expense.expand?.paidBy?.username ??
                                 "Unknown"}
                             </p>
+                            <p className="truncate text-muted-foreground">
+                              {formatDate(expense.date)}
+                            </p>
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">
-                              {formatAmount(expense.amount, expense.currency)}
+                              {formatAmount(expense.baseAmount || expense.amount, currency)}
                             </p>
-                            <p className="text-muted-foreground">{formatDate(expense.date)}</p>
+                            {expense.currency !== currency && (
+                              <p className="text-muted-foreground">
+                                {formatAmount(expense.amount, expense.currency)}
+                              </p>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

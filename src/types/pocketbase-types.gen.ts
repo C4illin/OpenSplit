@@ -104,13 +104,14 @@ export type CurrenciesRecord = {
 	created: IsoAutoDateString
 	decimals?: number
 	id: string
-	name: string
+	name?: string
 	symbol?: string
 	updated: IsoAutoDateString
 }
 
 export type ExpensesRecord = {
 	amount: number
+	baseAmount?: number
 	created: IsoAutoDateString
 	currency?: RecordIdString
 	date: IsoDateString

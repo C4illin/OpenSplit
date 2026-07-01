@@ -1,16 +1,21 @@
+import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { LinkArrow } from "@/components/LinkArrow";
 import { SplitEditor } from "@/components/SplitEditor";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Wrapper } from "@/components/Wrapper";
-import { useDeleteExpense, useGetExpense, useGroup, useUpdateExpense } from "@/hooks/useApi";
+import {
+  useConverter,
+  useDeleteExpense,
+  useGetExpense,
+  useGroup,
+  useUpdateExpense,
+} from "@/hooks/useApi";
 import { useAppForm } from "@/hooks/useAppForm";
 import { expenseFormDefaults } from "@/lib/expense-form";
 import { pb } from "@/lib/pocketbase";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Check, Trash2 } from "lucide-react";
-
-const CURRENCIES = ["SEK", "EUR", "USD", "GBP", "NOK", "DKK"];
+import { useState } from "react";
 
 export const Route = createFileRoute("/group/$id/expense/$expenseId")({
   beforeLoad: () => {
@@ -29,7 +34,10 @@ function EditExpensePage() {
   const members = group?.expand?.members ?? [];
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  const convertToBase = useConverter();
+  const base = group?.currency || "sek";
   const currentUserId = pb.authStore.record?.id ?? "";
+  const [convertError, setConvertError] = useState<string | null>(null);
 
   const existingSplits = expense?.expand?.splits_via_expense ?? [];
   const existingSplitIds = existingSplits.map((s) => s.id);
@@ -39,7 +47,7 @@ function EditExpensePage() {
       ...expenseFormDefaults,
       title: expense?.title ?? "",
       amount: expense?.amount?.toString() ?? "",
-      currency: expense?.currency ?? "SEK",
+      currency: expense?.currency || base,
       date: expense?.date ? expense.date.slice(0, 16) : "",
       paidBy: expense?.paidBy ?? currentUserId,
       splits: members.map((m) => {
@@ -57,12 +65,35 @@ function EditExpensePage() {
         .map((m) => m.id),
     },
     onSubmit: async ({ value }) => {
+      const amount = parseFloat(value.amount);
+      const date = new Date(value.date).toISOString();
+
+      // Keep the originally locked rate unless the amount or currency changed;
+      // otherwise re-convert at the rate effective on the expense's date.
+      let baseAmount: number | null;
+      if (
+        expense &&
+        value.currency === expense.currency &&
+        amount === expense.amount &&
+        expense.baseAmount != null
+      ) {
+        baseAmount = expense.baseAmount;
+      } else {
+        baseAmount = convertToBase(amount, value.currency, base, date);
+      }
+      if (baseAmount == null) {
+        setConvertError("No exchange rate available for this currency on that date.");
+        return;
+      }
+      setConvertError(null);
+
       await updateExpense.mutateAsync({
         id: expenseId,
         title: value.title,
-        amount: parseFloat(value.amount),
+        amount,
         currency: value.currency,
-        date: new Date(value.date).toISOString(),
+        baseAmount,
+        date,
         group: id,
         paidBy: value.paidBy,
         splits: value.splits,
@@ -189,18 +220,12 @@ function EditExpensePage() {
 
           <form.Field name="currency">
             {(field) => (
-              <div className="flex gap-1.5">
-                {CURRENCIES.map((c) => (
-                  <Badge
-                    key={c}
-                    variant={field.state.value === c ? "default" : "outline"}
-                    className="cursor-pointer px-3 py-1"
-                    onClick={() => field.handleChange(c)}
-                  >
-                    {c}
-                  </Badge>
-                ))}
-              </div>
+              <CurrencyPicker
+                value={field.state.value}
+                onChange={field.handleChange}
+                base={base}
+                groupId={id}
+              />
             )}
           </form.Field>
         </div>
@@ -236,6 +261,8 @@ function EditExpensePage() {
 
         {/* Split editor */}
         <SplitEditor form={form} members={members} currentUserId={currentUserId} />
+
+        {convertError && <p className="text-sm text-destructive">{convertError}</p>}
 
         {/* Bottom actions */}
         <div className="sticky bottom-0 flex gap-3 pt-4 pb-6">

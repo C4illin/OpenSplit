@@ -1,7 +1,7 @@
 export const expenseFormDefaults = {
   title: "",
   amount: "",
-  currency: "SEK",
+  currency: "sek",
   date: "",
   paidBy: "",
   splits: [] as { user: string; percentage: number }[],

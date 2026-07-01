@@ -28,7 +28,11 @@ export function computeBalances(
   for (const m of members) net[m.id] = 0;
 
   for (const expense of expenses) {
-    net[expense.paidBy] = (net[expense.paidBy] ?? 0) + expense.amount;
+    // Balances are tracked in the group's base currency: every expense stores a
+    // baseAmount locked at the rate when it was added. Fall back to amount for
+    // any legacy row that predates the conversion field.
+    const total = expense.baseAmount || expense.amount;
+    net[expense.paidBy] = (net[expense.paidBy] ?? 0) + total;
     const expenseSplits = splits.filter((s) => s.expense === expense.id);
     // Normalize by the actual percentage total so the expense is always fully
     // allocated, even when stored percentages don't sum to exactly 100 (a 3-way
@@ -37,7 +41,7 @@ export function computeBalances(
     const totalPct = expenseSplits.reduce((sum, s) => sum + s.percentage, 0);
     if (totalPct === 0) continue;
     for (const split of expenseSplits) {
-      const owed = (split.percentage / totalPct) * expense.amount;
+      const owed = (split.percentage / totalPct) * total;
       net[split.user] = (net[split.user] ?? 0) - owed;
     }
   }

@@ -161,7 +161,9 @@ export const SplitEditor = withForm({
                 hover:bg-muted
               "
             >
-              {displayMode === "percentage" ? `Show ${form.state.values.currency}` : `Show %`}
+              {displayMode === "percentage"
+                ? `Show ${form.state.values.currency.toUpperCase()}`
+                : `Show %`}
             </button>
           </div>
           <form.Subscribe selector={(s) => [s.values.excluded, s.values.splits] as const}>

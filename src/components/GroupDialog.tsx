@@ -1,3 +1,4 @@
+import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,9 +26,13 @@ export const GroupDialog = () => {
   const form = useForm({
     defaultValues: {
       name: "",
+      currency: "sek",
     },
     onSubmit: async ({ value }) => {
-      const newGroup = await createGroup.mutateAsync({ name: value.name });
+      const newGroup = await createGroup.mutateAsync({
+        name: value.name,
+        currency: value.currency,
+      });
       setDialogOpen(false);
       form.reset();
       await navigate({ to: "/group/$id", params: { id: newGroup.id } });
@@ -69,6 +74,22 @@ export const GroupDialog = () => {
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
                   )}
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="currency">
+              {(field) => (
+                <Field>
+                  <Label>Default currency</Label>
+                  <CurrencyPicker
+                    value={field.state.value}
+                    onChange={field.handleChange}
+                    base={field.state.value}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Expenses in other currencies are converted to this at the rate on the day
+                    they're added.
+                  </p>
                 </Field>
               )}
             </form.Field>

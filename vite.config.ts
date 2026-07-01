@@ -136,7 +136,7 @@ export default defineConfig({
     },
     overrides: [
       {
-        files: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+        files: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.mjs"],
         rules: {
           "constructor-super": "off",
           "getter-return": "off",

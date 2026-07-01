@@ -126,7 +126,7 @@ function RouteComponent() {
   // paid is always optimistic.
   const [undo, setUndo] = useState<{ id: string; label: string } | null>(null);
 
-  const currency = expenses?.[0]?.currency ?? "SEK";
+  const currency = group?.currency || "sek";
   const groupName = group?.name ?? "Group";
 
   const settlements = useMemo(() => {

@@ -1,14 +1,57 @@
+import { convert, ratesForDate } from "@/lib/rates";
 import type {
+  CurrenciesResponse,
   ExpensesResponse,
   ExternalauthsResponse,
   GroupsResponse,
   InvitesResponse,
+  RatesResponse,
   SettlementsResponse,
   SplitsResponse,
   UsersResponse,
 } from "@/types/pocketbase-types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { pb } from "../lib/pocketbase";
+
+// Currencies and rates change at most once a day and are shared across the app,
+// so cache them aggressively.
+const DAY = 1000 * 60 * 60 * 24;
+
+export const useCurrencies = () => {
+  return useQuery({
+    queryKey: ["currencies"],
+    queryFn: async () => {
+      return await pb.collection("currencies").getFullList<CurrenciesResponse>({ sort: "name" });
+    },
+    staleTime: DAY,
+  });
+};
+
+export const useRates = () => {
+  return useQuery({
+    queryKey: ["rates"],
+    queryFn: async () => {
+      return await pb.collection("rates").getFullList<RatesResponse>({ sort: "-date" });
+    },
+    staleTime: DAY,
+  });
+};
+
+/**
+ * Returns a converter that locks an amount into a target currency using the
+ * ECB snapshot effective on `dateISO` (defaults to now). Returns null when no
+ * rate is available, so callers can block instead of silently mis-converting.
+ */
+export const useConverter = () => {
+  const { data: rates } = useRates();
+  return (amount: number, from: string, to: string, dateISO?: string): number | null => {
+    if (from === to) return convert(amount, from, to, {});
+    if (!rates) return null;
+    const snapshot = ratesForDate(rates, dateISO ?? new Date().toISOString());
+    if (!snapshot) return null;
+    return convert(amount, from, to, snapshot.rates);
+  };
+};
 
 type GroupsExpand = {
   members?: UsersResponse[];
@@ -45,10 +88,11 @@ export const useGroup = (groupId: string) => {
 export const useCreateGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { name: string; description?: string }) => {
+    mutationFn: async (data: { name: string; description?: string; currency?: string }) => {
       const userId = pb.authStore.record?.id;
       return await pb.collection("groups").create({
         ...data,
+        currency: data.currency || "sek",
         members: userId ? [userId] : [],
       });
     },
@@ -94,6 +138,7 @@ type CreateExpenseData = {
   title: string;
   amount: number;
   currency: string;
+  baseAmount: number;
   date: string;
   group: string;
   paidBy: string;
@@ -108,6 +153,7 @@ export const useCreateExpense = () => {
         title: data.title,
         amount: data.amount,
         currency: data.currency,
+        baseAmount: data.baseAmount,
         date: data.date,
         group: data.group,
         paidBy: data.paidBy,
@@ -157,6 +203,7 @@ type UpdateExpenseData = {
   title: string;
   amount: number;
   currency: string;
+  baseAmount: number;
   date: string;
   group: string;
   paidBy: string;
@@ -172,6 +219,7 @@ export const useUpdateExpense = () => {
         title: data.title,
         amount: data.amount,
         currency: data.currency,
+        baseAmount: data.baseAmount,
         date: data.date,
         paidBy: data.paidBy,
       });

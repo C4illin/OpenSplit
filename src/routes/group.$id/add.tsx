@@ -1,10 +1,10 @@
+import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { SplitEditor } from "@/components/SplitEditor";
 import { expenseFormDefaults } from "@/lib/expense-form";
 import { formatAmount } from "@/lib/format";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Wrapper } from "@/components/Wrapper";
-import { useCreateExpense, useGroup } from "@/hooks/useApi";
+import { useConverter, useCreateExpense, useGroup } from "@/hooks/useApi";
 import { useAppForm, withForm } from "@/hooks/useAppForm";
 import { pb } from "@/lib/pocketbase";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
 
-const CURRENCIES = ["SEK", "EUR", "USD", "GBP", "NOK", "DKK"];
+type Converter = ReturnType<typeof useConverter>;
 
 type Step = "amount" | "title" | "split";
 const STEPS: Step[] = ["amount", "title", "split"];
@@ -32,12 +32,16 @@ function AddExpensePage() {
   const { data: group } = useGroup(id);
   const members = group?.expand?.members ?? [];
   const createExpense = useCreateExpense();
+  const convertToBase = useConverter();
+  const base = group?.currency || "sek";
   const currentUserId = pb.authStore.record?.id ?? "";
   const [step, setStep] = useState<Step>("amount");
+  const [convertError, setConvertError] = useState<string | null>(null);
 
   const form = useAppForm({
     defaultValues: {
       ...expenseFormDefaults,
+      currency: base,
       paidBy: currentUserId,
       splits: members.map((m) => ({
         user: m.id,
@@ -46,12 +50,23 @@ function AddExpensePage() {
     },
     onSubmit: async ({ value }) => {
       const splits = value.splits;
+      const date = new Date().toISOString();
+      const amount = parseFloat(value.amount);
+
+      // Lock in the converted amount at today's rate so balances stay stable.
+      const baseAmount = convertToBase(amount, value.currency, base, date);
+      if (baseAmount == null) {
+        setConvertError("No exchange rate available yet for this currency. Try again shortly.");
+        return;
+      }
+      setConvertError(null);
 
       await createExpense.mutateAsync({
         title: value.title,
-        amount: parseFloat(value.amount),
+        amount,
         currency: value.currency,
-        date: new Date().toISOString(),
+        baseAmount,
+        date,
         group: id,
         paidBy: value.paidBy,
         splits,
@@ -105,12 +120,18 @@ function AddExpensePage() {
       >
         {/* Step content — centered vertically */}
         <div className="flex flex-1 flex-col items-center justify-center">
-          {step === "amount" && <AmountStep form={form} />}
+          {step === "amount" && (
+            <AmountStep form={form} base={base} groupId={id} convertToBase={convertToBase} />
+          )}
           {step === "title" && <TitleStep form={form} />}
           {step === "split" && (
             <SplitEditor form={form} members={members} currentUserId={currentUserId} />
           )}
         </div>
+
+        {convertError && (
+          <p className="pt-2 text-center text-sm text-destructive">{convertError}</p>
+        )}
 
         {/* Bottom nav */}
         <div className="flex gap-3 pt-4 pb-6">
@@ -169,7 +190,12 @@ function AddExpensePage() {
 
 const AmountStep = withForm({
   defaultValues: expenseFormDefaults,
-  render: ({ form }) => (
+  props: {
+    base: "sek",
+    groupId: "",
+    convertToBase: (() => null) as Converter,
+  },
+  render: ({ form, base, groupId, convertToBase }) => (
     <div className="flex w-full flex-col items-center gap-6">
       <p className="text-sm text-muted-foreground">How much was it?</p>
 
@@ -213,18 +239,12 @@ const AmountStep = withForm({
 
       <form.Field name="currency">
         {(field) => (
-          <div className="flex gap-1.5">
-            {CURRENCIES.map((c) => (
-              <Badge
-                key={c}
-                variant={field.state.value === c ? "default" : "outline"}
-                className="cursor-pointer px-3 py-1"
-                onClick={() => field.handleChange(c)}
-              >
-                {c}
-              </Badge>
-            ))}
-          </div>
+          <CurrencyPicker
+            value={field.state.value}
+            onChange={field.handleChange}
+            base={base}
+            groupId={groupId}
+          />
         )}
       </form.Field>
 
@@ -232,7 +252,20 @@ const AmountStep = withForm({
         {([amount, currency]) => {
           const parsed = parseFloat(amount);
           if (isNaN(parsed) || parsed <= 0) return null;
-          return <p className="text-sm text-muted-foreground">{formatAmount(parsed, currency)}</p>;
+          // Preview is always in the group's base currency, since that's what
+          // gets stored and drives balances.
+          if (currency === base) {
+            return <p className="text-sm text-muted-foreground">{formatAmount(parsed, base)}</p>;
+          }
+          const converted = convertToBase(parsed, currency, base);
+          return (
+            <p className="text-sm text-muted-foreground">
+              {formatAmount(parsed, currency)}
+              {converted != null
+                ? ` ≈ ${formatAmount(converted, base)}`
+                : " · no rate available yet"}
+            </p>
+          );
         }}
       </form.Subscribe>
     </div>

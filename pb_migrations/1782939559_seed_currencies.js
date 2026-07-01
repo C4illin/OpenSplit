@@ -52,7 +52,7 @@ migrate(
         // not found — create it below
       }
       const record = new Record(collection);
-      record.setId(c.id);
+      record.set("id", c.id);
       record.set("name", c.name);
       record.set("symbol", c.symbol);
       record.set("decimals", c.decimals);

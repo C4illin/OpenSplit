@@ -6,4 +6,5 @@ export const expenseFormDefaults = {
   paidBy: "",
   splits: [] as { user: string; percentage: number }[],
   excluded: [] as string[],
+  tags: [] as string[],
 };

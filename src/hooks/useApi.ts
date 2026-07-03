@@ -8,6 +8,7 @@ import type {
   RatesResponse,
   SettlementsResponse,
   SplitsResponse,
+  TagsResponse,
   UsersResponse,
 } from "@/types/pocketbase-types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -102,10 +103,38 @@ export const useCreateGroup = () => {
   });
 };
 
+// Tags
+
+export const useTags = (groupId: string) => {
+  return useQuery({
+    queryKey: ["tags", groupId],
+    queryFn: async () => {
+      return await pb.collection("tags").getFullList<TagsResponse>({
+        filter: `group = "${groupId}"`,
+        sort: "name",
+      });
+    },
+    enabled: !!groupId,
+  });
+};
+
+export const useCreateTag = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { group: string; name: string }) => {
+      return await pb.collection("tags").create<TagsResponse>(data);
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ["tags", variables.group] });
+    },
+  });
+};
+
 // Expenses
 
 type ExpensesExpand = {
   paidBy?: UsersResponse;
+  tags?: TagsResponse[];
 };
 
 export const useExpenses = (groupId: string) => {
@@ -115,7 +144,7 @@ export const useExpenses = (groupId: string) => {
       return await pb.collection("expenses").getFullList<ExpensesResponse<ExpensesExpand>>({
         filter: `group = "${groupId}"`,
         sort: "-date",
-        expand: "paidBy",
+        expand: "paidBy,tags",
       });
     },
     enabled: !!groupId,
@@ -143,6 +172,7 @@ type CreateExpenseData = {
   group: string;
   paidBy: string;
   splits: { user: string; percentage: number }[];
+  tags: string[];
 };
 
 export const useCreateExpense = () => {
@@ -157,6 +187,7 @@ export const useCreateExpense = () => {
         date: data.date,
         group: data.group,
         paidBy: data.paidBy,
+        tags: data.tags,
       });
 
       await Promise.all(
@@ -209,6 +240,7 @@ type UpdateExpenseData = {
   paidBy: string;
   splits: { user: string; percentage: number }[];
   existingSplitIds: string[];
+  tags: string[];
 };
 
 export const useUpdateExpense = () => {
@@ -222,6 +254,7 @@ export const useUpdateExpense = () => {
         baseAmount: data.baseAmount,
         date: data.date,
         paidBy: data.paidBy,
+        tags: data.tags,
       });
 
       // Delete old splits

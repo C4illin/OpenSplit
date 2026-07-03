@@ -1,6 +1,7 @@
 import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { LinkArrow } from "@/components/LinkArrow";
 import { SplitEditor } from "@/components/SplitEditor";
+import { TagPicker } from "@/components/TagPicker";
 import { Button } from "@/components/ui/button";
 import { Wrapper } from "@/components/Wrapper";
 import {
@@ -50,6 +51,7 @@ function EditExpensePage() {
       currency: expense?.currency || base,
       date: expense?.date ? expense.date.slice(0, 16) : "",
       paidBy: expense?.paidBy ?? currentUserId,
+      tags: expense?.tags ?? [],
       splits: members.map((m) => {
         const existing = existingSplits.find((s) => s.user === m.id);
         return {
@@ -98,6 +100,7 @@ function EditExpensePage() {
         paidBy: value.paidBy,
         splits: value.splits,
         existingSplitIds,
+        tags: value.tags,
       });
 
       await navigate({ to: "/group/$id", params: { id } });
@@ -255,6 +258,16 @@ function EditExpensePage() {
                   <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
                 )}
               </div>
+            )}
+          </form.Field>
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">Tags</p>
+          <form.Field name="tags">
+            {(field) => (
+              <TagPicker groupId={id} value={field.state.value} onChange={field.handleChange} />
             )}
           </form.Field>
         </div>

@@ -20,6 +20,7 @@ export const Collections = {
 	Rates: "rates",
 	Settlements: "settlements",
 	Splits: "splits",
+	Tags: "tags",
 	Users: "users",
 } as const
 export type Collections = typeof Collections[keyof typeof Collections]
@@ -120,6 +121,7 @@ export type ExpensesRecord = {
 	group: RecordIdString
 	id: string
 	paidBy: RecordIdString
+	tags?: RecordIdString[]
 	title: string
 	updated: IsoAutoDateString
 }
@@ -192,6 +194,14 @@ export type SplitsRecord = {
 	user?: RecordIdString
 }
 
+export type TagsRecord = {
+	created: IsoAutoDateString
+	group?: RecordIdString
+	id: string
+	name?: string
+	updated: IsoAutoDateString
+}
+
 export type UsersRecord = {
 	avatar?: FileNameString
 	created: IsoAutoDateString
@@ -221,6 +231,7 @@ export type PushSubscriptionsResponse<Texpand = unknown> = Required<PushSubscrip
 export type RatesResponse<Trates = unknown, Texpand = unknown> = Required<RatesRecord<Trates>> & BaseSystemFields<Texpand>
 export type SettlementsResponse<Texpand = unknown> = Required<SettlementsRecord> & BaseSystemFields<Texpand>
 export type SplitsResponse<Texpand = unknown> = Required<SplitsRecord> & BaseSystemFields<Texpand>
+export type TagsResponse<Texpand = unknown> = Required<TagsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
@@ -240,6 +251,7 @@ export type CollectionRecords = {
 	rates: RatesRecord
 	settlements: SettlementsRecord
 	splits: SplitsRecord
+	tags: TagsRecord
 	users: UsersRecord
 }
 
@@ -258,6 +270,7 @@ export type CollectionResponses = {
 	rates: RatesResponse
 	settlements: SettlementsResponse
 	splits: SplitsResponse
+	tags: TagsResponse
 	users: UsersResponse
 }
 

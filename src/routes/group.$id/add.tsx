@@ -1,5 +1,6 @@
 import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { SplitEditor } from "@/components/SplitEditor";
+import { TagPicker } from "@/components/TagPicker";
 import { expenseFormDefaults } from "@/lib/expense-form";
 import { formatAmount } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ function AddExpensePage() {
         group: id,
         paidBy: value.paidBy,
         splits,
+        tags: value.tags,
       });
 
       await navigate({ to: "/group/$id", params: { id } });
@@ -123,7 +125,7 @@ function AddExpensePage() {
           {step === "amount" && (
             <AmountStep form={form} base={base} groupId={id} convertToBase={convertToBase} />
           )}
-          {step === "title" && <TitleStep form={form} />}
+          {step === "title" && <TitleStep form={form} groupId={id} />}
           {step === "split" && (
             <SplitEditor form={form} members={members} currentUserId={currentUserId} />
           )}
@@ -274,7 +276,10 @@ const AmountStep = withForm({
 
 const TitleStep = withForm({
   defaultValues: expenseFormDefaults,
-  render: ({ form }) => (
+  props: {
+    groupId: "",
+  },
+  render: ({ form, groupId }) => (
     <div className="flex w-full flex-col items-center gap-6">
       <p className="text-sm text-muted-foreground">What was it for?</p>
 
@@ -300,6 +305,14 @@ const TitleStep = withForm({
             {field.state.meta.errors.length > 0 && (
               <p className="text-sm text-destructive">{field.state.meta.errors.join(", ")}</p>
             )}
+          </div>
+        )}
+      </form.Field>
+
+      <form.Field name="tags">
+        {(field) => (
+          <div className="flex justify-center">
+            <TagPicker groupId={groupId} value={field.state.value} onChange={field.handleChange} />
           </div>
         )}
       </form.Field>

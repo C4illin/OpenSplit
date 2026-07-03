@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { InviteDialog } from "@/components/InviteDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -204,9 +205,16 @@ function RouteComponent() {
                                 expense.expand?.paidBy?.username ??
                                 "Unknown"}
                             </p>
-                            <p className="truncate text-muted-foreground">
-                              {formatDate(expense.date)}
-                            </p>
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                              <p className="shrink-0 text-muted-foreground">
+                                {formatDate(expense.date)}
+                              </p>
+                              {expense.expand?.tags?.map((tag) => (
+                                <Badge key={tag.id} variant="secondary">
+                                  {tag.name}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">

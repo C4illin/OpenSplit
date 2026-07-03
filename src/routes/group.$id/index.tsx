@@ -14,7 +14,7 @@ import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import type { IsoDateString } from "@/types/pocketbase-types.gen";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowRightLeft, Plus } from "lucide-react";
+import { ArrowRightLeft, Plus, Settings } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 export const Route = createFileRoute("/group/$id/")({
@@ -63,7 +63,14 @@ function RouteComponent() {
     <>
       <Header link="/overview">
         <h1 className="text-xl font-semibold">{group?.name ?? "Group"}</h1>
-        <InviteDialog groupId={id} open={inviteDialogOpen} onOpenChange={setInviteDialogOpen} />
+        <div className="flex items-center gap-2">
+          <InviteDialog groupId={id} open={inviteDialogOpen} onOpenChange={setInviteDialogOpen} />
+          <Button variant="outline" size="icon" asChild>
+            <Link to="/group/$id/settings" params={{ id }} aria-label="Group settings">
+              <Settings size={16} />
+            </Link>
+          </Button>
+        </div>
       </Header>
 
       <Wrapper>

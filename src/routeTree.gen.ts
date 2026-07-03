@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GroupIdIndexRouteImport } from './routes/group.$id/index'
 import { Route as GroupIdSettleRouteImport } from './routes/group.$id/settle'
+import { Route as GroupIdSettingsRouteImport } from './routes/group.$id/settings'
 import { Route as GroupIdAddRouteImport } from './routes/group.$id/add'
 import { Route as GroupIdExpenseExpenseIdRouteImport } from './routes/group.$id/expense.$expenseId'
 
@@ -48,6 +49,11 @@ const GroupIdSettleRoute = GroupIdSettleRouteImport.update({
   path: '/group/$id/settle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GroupIdSettingsRoute = GroupIdSettingsRouteImport.update({
+  id: '/group/$id/settings',
+  path: '/group/$id/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GroupIdAddRoute = GroupIdAddRouteImport.update({
   id: '/group/$id/add',
   path: '/group/$id/add',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/invite/$token': typeof InviteTokenRoute
   '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id/settings': typeof GroupIdSettingsRoute
   '/group/$id/settle': typeof GroupIdSettleRoute
   '/group/$id/': typeof GroupIdIndexRoute
   '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/invite/$token': typeof InviteTokenRoute
   '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id/settings': typeof GroupIdSettingsRoute
   '/group/$id/settle': typeof GroupIdSettleRoute
   '/group/$id': typeof GroupIdIndexRoute
   '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/invite/$token': typeof InviteTokenRoute
   '/group/$id/add': typeof GroupIdAddRoute
+  '/group/$id/settings': typeof GroupIdSettingsRoute
   '/group/$id/settle': typeof GroupIdSettleRoute
   '/group/$id/': typeof GroupIdIndexRoute
   '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/invite/$token'
     | '/group/$id/add'
+    | '/group/$id/settings'
     | '/group/$id/settle'
     | '/group/$id/'
     | '/group/$id/expense/$expenseId'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/invite/$token'
     | '/group/$id/add'
+    | '/group/$id/settings'
     | '/group/$id/settle'
     | '/group/$id'
     | '/group/$id/expense/$expenseId'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/invite/$token'
     | '/group/$id/add'
+    | '/group/$id/settings'
     | '/group/$id/settle'
     | '/group/$id/'
     | '/group/$id/expense/$expenseId'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   InviteTokenRoute: typeof InviteTokenRoute
   GroupIdAddRoute: typeof GroupIdAddRoute
+  GroupIdSettingsRoute: typeof GroupIdSettingsRoute
   GroupIdSettleRoute: typeof GroupIdSettleRoute
   GroupIdIndexRoute: typeof GroupIdIndexRoute
   GroupIdExpenseExpenseIdRoute: typeof GroupIdExpenseExpenseIdRoute
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupIdSettleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/group/$id/settings': {
+      id: '/group/$id/settings'
+      path: '/group/$id/settings'
+      fullPath: '/group/$id/settings'
+      preLoaderRoute: typeof GroupIdSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/group/$id/add': {
       id: '/group/$id/add'
       path: '/group/$id/add'
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   InviteTokenRoute: InviteTokenRoute,
   GroupIdAddRoute: GroupIdAddRoute,
+  GroupIdSettingsRoute: GroupIdSettingsRoute,
   GroupIdSettleRoute: GroupIdSettleRoute,
   GroupIdIndexRoute: GroupIdIndexRoute,
   GroupIdExpenseExpenseIdRoute: GroupIdExpenseExpenseIdRoute,

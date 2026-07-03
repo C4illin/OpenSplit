@@ -103,6 +103,33 @@ export const useCreateGroup = () => {
   });
 };
 
+export const useUpdateGroup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { id: string; name: string }) => {
+      return await pb.collection("groups").update<GroupsResponse>(data.id, { name: data.name });
+    },
+    onSuccess: async () => {
+      // Covers both the group list (["groups", userId]) and single group (["groups", id]).
+      await queryClient.invalidateQueries({ queryKey: ["groups"] });
+    },
+  });
+};
+
+export const useDeleteGroup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Expenses, splits, settlements, invites and tags are removed by
+      // cascade delete on their relation fields.
+      await pb.collection("groups").delete(id);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["groups"] });
+    },
+  });
+};
+
 // Tags
 
 export const useTags = (groupId: string) => {

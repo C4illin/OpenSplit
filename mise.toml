@@ -2,7 +2,7 @@
 node = "24"
 pnpm = "11.6.0"
 viteplus = "latest"
-go = "latest"
+go = "1.26"
 "go:golang.org/x/tools/gopls" = "latest"
 
 [env]

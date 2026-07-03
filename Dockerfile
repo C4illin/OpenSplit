@@ -33,8 +33,6 @@ COPY --from=frontend /app/dist /pb/pb_public
 
 COPY ./pb_migrations /pb/pb_migrations
 COPY ./pb_hooks /pb/pb_hooks
-# remove dev hook
-RUN rm -f /pb/pb_hooks/generateHooks.pb.js
 
 EXPOSE 5050
 

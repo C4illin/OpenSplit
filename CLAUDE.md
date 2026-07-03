@@ -4,14 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-OpenSplit — a group expense splitting app built with React 19 + TypeScript, Vite, and PocketBase as the backend.
+OpenSplit — a group expense splitting app built with React 19 + TypeScript, Vite, and PocketBase as the backend. The backend is a custom PocketBase build in Go (`main.go`, `webpush.go`) rather than the stock binary.
 
 ## Commands
 
-- `vp run dev` — start Vite dev server
+- `vp run dev` — start PocketBase (`go run . serve`) and the Vite dev server together
 - `vp run build` — TypeScript check + Vite production build
 - `vp run lint` — run ESLint
 - `vp run typegen` — regenerate PocketBase types after schema changes (outputs to `src/types/pocketbase-types.gen.ts`)
+- `go build ./...` / `go vet ./...` — compile-check the Go backend after changing `main.go`/`webpush.go`
 
 No test framework is configured.
 
@@ -29,9 +30,18 @@ No test framework is configured.
 
 **Path alias:** `@/*` maps to `src/*`.
 
-## PocketBase
+## PocketBase (Go backend)
 
-Collections: `groups`, `users`, `people`, `expenses`, `splits`, `invites`. Relations are fetched via PocketBase's `expand` parameter. Default dev URL: `http://localhost:8090` (set via `VITE_POCKETBASE_URL`).
+The backend is a custom PocketBase binary defined at the repo root (Go module `opensplit`, Go 1.26):
+
+- `main.go` — behaves like the stock binary: registers the JSVM (JS hooks in `pb_hooks/`, watched in dev), JS automigrations in `pb_migrations/`, and serves the built frontend from `pb_public/` in production.
+- `webpush.go` — Web Push delivery, the reason for the custom build (the JSVM lacks the required crypto). On every created `notifications` record it pushes to all of the recipient's `push_subscriptions` records and prunes dead subscriptions. VAPID keys are auto-generated and persisted in `pb_data/vapid.json`; the contact address comes from `VAPID_SUBJECT`. The client fetches the public key from `GET /api/vapid-public-key`.
+
+Business logic stays in JS hooks in `pb_hooks/` (e.g. `notifications.pb.js` creates the notification records; Go is only the transport). After adding a Go dependency, run `go mod tidy`.
+
+Collections: `groups`, `users`, `people`, `expenses`, `splits`, `invites`, `settlements`, `currencies`, `rates`, `notifications`, `push_subscriptions`. Relations are fetched via PocketBase's `expand` parameter. Default dev URL: `http://localhost:8090` (set via `VITE_POCKETBASE_URL`).
+
+Production runs everything as one container (see `Dockerfile`): the Go binary serves the API and the static frontend.
 
 ## Using Vite+, the Unified Toolchain for the Web
 

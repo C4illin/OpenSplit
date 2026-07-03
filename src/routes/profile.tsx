@@ -8,6 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Wrapper } from "@/components/Wrapper";
 import { useCurrentUser, useExternalAuths, useUpdateProfile } from "@/hooks/useApi";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  isPushSupported,
+  useDisablePush,
+  useEnablePush,
+  usePushSubscription,
+} from "@/hooks/usePush";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -25,6 +31,51 @@ export const Route = createFileRoute("/profile")({
 
 function formatProvider(provider: string) {
   return provider.charAt(0).toUpperCase() + provider.slice(1);
+}
+
+function NotificationsCard() {
+  const { data: subscription, isLoading } = usePushSubscription();
+  const enablePush = useEnablePush();
+  const disablePush = useDisablePush();
+
+  const supported = isPushSupported();
+  const enabled = !!subscription;
+  const blocked = supported && !enabled && Notification.permission === "denied";
+  const isPending = enablePush.isPending || disablePush.isPending;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Notifications</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <p className="text-sm text-muted-foreground">
+          Get notified on this device when someone adds an expense or settles up.
+        </p>
+        {!supported ? (
+          <p className="text-sm text-muted-foreground">
+            Push notifications aren't supported in this browser. On iOS, add OpenSplit to your home
+            screen first.
+          </p>
+        ) : blocked ? (
+          <p className="text-sm text-destructive">
+            Notifications are blocked for this site in your browser settings.
+          </p>
+        ) : (
+          <Button
+            variant={enabled ? "outline" : "default"}
+            disabled={isLoading || isPending}
+            onClick={() => (enabled ? disablePush.mutate() : enablePush.mutate())}
+          >
+            {isPending ? "Saving..." : enabled ? "Disable on this device" : "Enable on this device"}
+          </Button>
+        )}
+        {enablePush.isError && (
+          <p className="text-sm text-destructive">{enablePush.error.message}</p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 function RouteComponent() {
@@ -113,6 +164,8 @@ function RouteComponent() {
             )}
           </CardContent>
         </Card>
+
+        <NotificationsCard />
 
         <Card>
           <CardHeader>

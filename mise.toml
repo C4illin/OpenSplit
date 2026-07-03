@@ -1,8 +1,9 @@
 [tools]
-pocketbase = "0.39.4"
 node = "24"
 pnpm = "11.6.0"
 viteplus = "latest"
+go = "latest"
+"go:golang.org/x/tools/gopls" = "latest"
 
 [env]
 _.path = ['{{config_root}}/node_modules/.bin']

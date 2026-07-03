@@ -1,5 +1,5 @@
 {
   "permissions": {
-    "allow": ["Bash(vp lint *)", "Bash(vp fmt *)", "Bash(vp check *)"]
+    "allow": ["Bash(vp lint *)", "Bash(vp fmt *)", "Bash(vp check *)", "Bash(vp run *)"]
   }
 }

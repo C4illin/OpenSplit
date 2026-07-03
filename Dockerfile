@@ -11,18 +11,23 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
 RUN pnpm build
 
-# Stage 2: PocketBase + static frontend
+# Stage 2: Build the custom PocketBase binary (adds Web Push, see main.go)
+FROM golang:1.26-alpine AS backend
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY main.go webpush.go ./
+RUN CGO_ENABLED=0 go build -o pocketbase .
+
+# Stage 3: PocketBase + static frontend
 FROM alpine:latest
 
-ARG PB_VERSION=0.39.4
+RUN apk add --no-cache ca-certificates
 
-RUN apk add --no-cache \
-  unzip \
-  ca-certificates
-
-# download and unzip PocketBase
-ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
-RUN unzip /tmp/pb.zip -d /pb/
+COPY --from=backend /app/pocketbase /pb/pocketbase
 
 COPY --from=frontend /app/dist /pb/pb_public
 

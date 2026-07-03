@@ -15,6 +15,8 @@ export const Collections = {
 	Expenses: "expenses",
 	Groups: "groups",
 	Invites: "invites",
+	Notifications: "notifications",
+	PushSubscriptions: "push_subscriptions",
 	Rates: "rates",
 	Settlements: "settlements",
 	Splits: "splits",
@@ -139,6 +141,27 @@ export type InvitesRecord = {
 	updated: IsoAutoDateString
 }
 
+export type NotificationsRecord = {
+	body?: string
+	created: IsoAutoDateString
+	id: string
+	title: string
+	updated: IsoAutoDateString
+	url?: string
+	user: RecordIdString
+}
+
+export type PushSubscriptionsRecord = {
+	auth: string
+	created: IsoAutoDateString
+	endpoint: string
+	id: string
+	p256dh: string
+	updated: IsoAutoDateString
+	user: RecordIdString
+	userAgent?: string
+}
+
 export type RatesRecord<Trates = unknown> = {
 	base?: string
 	created: IsoAutoDateString
@@ -193,6 +216,8 @@ export type CurrenciesResponse<Texpand = unknown> = Required<CurrenciesRecord> &
 export type ExpensesResponse<Texpand = unknown> = Required<ExpensesRecord> & BaseSystemFields<Texpand>
 export type GroupsResponse<Texpand = unknown> = Required<GroupsRecord> & BaseSystemFields<Texpand>
 export type InvitesResponse<Texpand = unknown> = Required<InvitesRecord> & BaseSystemFields<Texpand>
+export type NotificationsResponse<Texpand = unknown> = Required<NotificationsRecord> & BaseSystemFields<Texpand>
+export type PushSubscriptionsResponse<Texpand = unknown> = Required<PushSubscriptionsRecord> & BaseSystemFields<Texpand>
 export type RatesResponse<Trates = unknown, Texpand = unknown> = Required<RatesRecord<Trates>> & BaseSystemFields<Texpand>
 export type SettlementsResponse<Texpand = unknown> = Required<SettlementsRecord> & BaseSystemFields<Texpand>
 export type SplitsResponse<Texpand = unknown> = Required<SplitsRecord> & BaseSystemFields<Texpand>
@@ -210,6 +235,8 @@ export type CollectionRecords = {
 	expenses: ExpensesRecord
 	groups: GroupsRecord
 	invites: InvitesRecord
+	notifications: NotificationsRecord
+	push_subscriptions: PushSubscriptionsRecord
 	rates: RatesRecord
 	settlements: SettlementsRecord
 	splits: SplitsRecord
@@ -226,6 +253,8 @@ export type CollectionResponses = {
 	expenses: ExpensesResponse
 	groups: GroupsResponse
 	invites: InvitesResponse
+	notifications: NotificationsResponse
+	push_subscriptions: PushSubscriptionsResponse
 	rates: RatesResponse
 	settlements: SettlementsResponse
 	splits: SplitsResponse

@@ -176,9 +176,15 @@ export default defineConfig({
     }),
     react(),
     VitePWA({
+      // custom service worker so we can handle Web Push events
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
       devOptions: {
         enabled: true,
+        type: "module",
+        navigateFallback: "index.html",
       },
       includeAssets: [
         "favicon.ico",
@@ -191,6 +197,10 @@ export default defineConfig({
         short_name: "OpenSplit",
         description: "split bills and keep track of who owes what.",
         theme_color: "#F0B100",
+        background_color: "#F0B100",
+        display: "standalone",
+        start_url: "/",
+        scope: "/",
         icons: [
           {
             src: "android-chrome-192x192.png",

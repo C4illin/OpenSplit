@@ -124,8 +124,11 @@ export const useDeleteGroup = () => {
       // cascade delete on their relation fields.
       await pb.collection("groups").delete(id);
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["groups"] });
+    onSuccess: async (_data, id) => {
+      // Refetching the deleted group would 404, so drop its query and only
+      // mark the rest stale; the list refetches when the overview mounts.
+      queryClient.removeQueries({ queryKey: ["groups", id] });
+      await queryClient.invalidateQueries({ queryKey: ["groups"], refetchType: "none" });
     },
   });
 };

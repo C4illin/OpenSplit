@@ -35,12 +35,14 @@ export const Route = createFileRoute("/group/$id/settings")({
 function GroupSettingsPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const { data: group, isLoading } = useGroup(id);
-  const { data: tags } = useTags(id);
-  const { data: currencies } = useCurrencies();
   const updateGroup = useUpdateGroup();
   const deleteGroup = useDeleteGroup();
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Once deletion starts the record is about to 404, so stop fetching it.
+  const deleting = deleteGroup.isPending || deleteGroup.isSuccess;
+  const { data: group, isLoading } = useGroup(deleting ? "" : id);
+  const { data: tags } = useTags(id);
+  const { data: currencies } = useCurrencies();
 
   const currency = currencies?.find((c) => c.id === group?.currency);
 

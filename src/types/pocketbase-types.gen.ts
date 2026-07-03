@@ -196,9 +196,9 @@ export type SplitsRecord = {
 
 export type TagsRecord = {
 	created: IsoAutoDateString
-	group?: RecordIdString
+	group: RecordIdString
 	id: string
-	name?: string
+	name: string
 	updated: IsoAutoDateString
 }
 

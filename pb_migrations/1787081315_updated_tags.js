@@ -1,0 +1,26 @@
+/// <reference path="../pb_data/types.d.ts" />
+migrate((app) => {
+  const collection = app.findCollectionByNameOrId("pbc_1219621782")
+
+  // update collection data
+  unmarshal({
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_tags_group_name` ON `categories` (\n  `name`,\n  `group`\n)"
+    ],
+    "name": "categories"
+  }, collection)
+
+  return app.save(collection)
+}, (app) => {
+  const collection = app.findCollectionByNameOrId("pbc_1219621782")
+
+  // update collection data
+  unmarshal({
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_tags_group_name` ON `tags` (\n  `name`,\n  `group`\n)"
+    ],
+    "name": "tags"
+  }, collection)
+
+  return app.save(collection)
+})

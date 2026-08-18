@@ -11,6 +11,7 @@ export const Collections = {
 	Mfas: "_mfas",
 	Otps: "_otps",
 	Superusers: "_superusers",
+	Categories: "categories",
 	Currencies: "currencies",
 	Expenses: "expenses",
 	Groups: "groups",
@@ -20,7 +21,6 @@ export const Collections = {
 	Rates: "rates",
 	Settlements: "settlements",
 	Splits: "splits",
-	Tags: "tags",
 	Users: "users",
 } as const
 export type Collections = typeof Collections[keyof typeof Collections]
@@ -103,6 +103,14 @@ export type SuperusersRecord = {
 	verified?: boolean
 }
 
+export type CategoriesRecord = {
+	created: IsoAutoDateString
+	group: RecordIdString
+	id: string
+	name: string
+	updated: IsoAutoDateString
+}
+
 export type CurrenciesRecord = {
 	created: IsoAutoDateString
 	decimals?: number
@@ -115,13 +123,13 @@ export type CurrenciesRecord = {
 export type ExpensesRecord = {
 	amount: number
 	baseAmount?: number
+	category?: RecordIdString
 	created: IsoAutoDateString
 	currency?: RecordIdString
 	date: IsoDateString
 	group: RecordIdString
 	id: string
 	paidBy: RecordIdString
-	tags?: RecordIdString[]
 	title: string
 	updated: IsoAutoDateString
 }
@@ -194,14 +202,6 @@ export type SplitsRecord = {
 	user?: RecordIdString
 }
 
-export type TagsRecord = {
-	created: IsoAutoDateString
-	group: RecordIdString
-	id: string
-	name: string
-	updated: IsoAutoDateString
-}
-
 export type UsersRecord = {
 	avatar?: FileNameString
 	created: IsoAutoDateString
@@ -222,6 +222,7 @@ export type ExternalauthsResponse<Texpand = unknown> = Required<ExternalauthsRec
 export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemFields<Texpand>
 export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
+export type CategoriesResponse<Texpand = unknown> = Required<CategoriesRecord> & BaseSystemFields<Texpand>
 export type CurrenciesResponse<Texpand = unknown> = Required<CurrenciesRecord> & BaseSystemFields<Texpand>
 export type ExpensesResponse<Texpand = unknown> = Required<ExpensesRecord> & BaseSystemFields<Texpand>
 export type GroupsResponse<Texpand = unknown> = Required<GroupsRecord> & BaseSystemFields<Texpand>
@@ -231,7 +232,6 @@ export type PushSubscriptionsResponse<Texpand = unknown> = Required<PushSubscrip
 export type RatesResponse<Trates = unknown, Texpand = unknown> = Required<RatesRecord<Trates>> & BaseSystemFields<Texpand>
 export type SettlementsResponse<Texpand = unknown> = Required<SettlementsRecord> & BaseSystemFields<Texpand>
 export type SplitsResponse<Texpand = unknown> = Required<SplitsRecord> & BaseSystemFields<Texpand>
-export type TagsResponse<Texpand = unknown> = Required<TagsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
@@ -242,6 +242,7 @@ export type CollectionRecords = {
 	_mfas: MfasRecord
 	_otps: OtpsRecord
 	_superusers: SuperusersRecord
+	categories: CategoriesRecord
 	currencies: CurrenciesRecord
 	expenses: ExpensesRecord
 	groups: GroupsRecord
@@ -251,7 +252,6 @@ export type CollectionRecords = {
 	rates: RatesRecord
 	settlements: SettlementsRecord
 	splits: SplitsRecord
-	tags: TagsRecord
 	users: UsersRecord
 }
 
@@ -261,6 +261,7 @@ export type CollectionResponses = {
 	_mfas: MfasResponse
 	_otps: OtpsResponse
 	_superusers: SuperusersResponse
+	categories: CategoriesResponse
 	currencies: CurrenciesResponse
 	expenses: ExpensesResponse
 	groups: GroupsResponse
@@ -270,7 +271,6 @@ export type CollectionResponses = {
 	rates: RatesResponse
 	settlements: SettlementsResponse
 	splits: SplitsResponse
-	tags: TagsResponse
 	users: UsersResponse
 }
 

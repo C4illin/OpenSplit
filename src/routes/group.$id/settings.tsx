@@ -16,7 +16,13 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wrapper } from "@/components/Wrapper";
-import { useCurrencies, useDeleteGroup, useGroup, useTags, useUpdateGroup } from "@/hooks/useApi";
+import {
+  useCategories,
+  useCurrencies,
+  useDeleteGroup,
+  useGroup,
+  useUpdateGroup,
+} from "@/hooks/useApi";
 import { pb } from "@/lib/pocketbase";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -41,7 +47,7 @@ function GroupSettingsPage() {
   // Once deletion starts the record is about to 404, so stop fetching it.
   const deleting = deleteGroup.isPending || deleteGroup.isSuccess;
   const { data: group, isLoading } = useGroup(deleting ? "" : id);
-  const { data: tags } = useTags(id);
+  const { data: categories } = useCategories(id);
   const { data: currencies } = useCurrencies();
 
   const currency = currencies?.find((c) => c.id === group?.currency);
@@ -115,20 +121,20 @@ function GroupSettingsPage() {
           </p>
         </div>
 
-        {/* Tags */}
+        {/* Categories */}
         <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium">Tags</p>
-          {tags?.length ? (
+          <p className="text-sm font-medium">Categories</p>
+          {categories?.length ? (
             <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <Badge key={tag.id} variant="secondary">
-                  {tag.name}
+              {categories.map((category) => (
+                <Badge key={category.id} variant="secondary">
+                  {category.name}
                 </Badge>
               ))}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No tags yet. Add them while creating or editing an expense.
+              No categories yet. Add them while creating or editing an expense.
             </p>
           )}
         </div>
@@ -148,7 +154,7 @@ function GroupSettingsPage() {
                 <AlertDialogTitle>Delete "{group.name}"?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This permanently deletes the group along with all of its expenses, settlements and
-                  tags, for every member. This cannot be undone.
+                  categories, for every member. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

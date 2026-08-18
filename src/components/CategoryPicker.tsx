@@ -1,23 +1,23 @@
 import { Badge } from "@/components/ui/badge";
-import { useCreateTag, useTags } from "@/hooks/useApi";
+import { useCategories, useCreateCategory } from "@/hooks/useApi";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 
-type TagPickerProps = {
+type CategoryPickerProps = {
   groupId: string;
-  /** Selected tag ids. */
-  value: string[];
-  onChange: (ids: string[]) => void;
+  /** Selected category id, or "" for none. */
+  value: string;
+  onChange: (id: string) => void;
 };
 
-export function TagPicker({ groupId, value, onChange }: TagPickerProps) {
-  const { data: tags } = useTags(groupId);
-  const createTag = useCreateTag();
+export function CategoryPicker({ groupId, value, onChange }: CategoryPickerProps) {
+  const { data: categories } = useCategories(groupId);
+  const createCategory = useCreateCategory();
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
 
   const toggle = (id: string) => {
-    onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
+    onChange(value === id ? "" : id);
   };
 
   const commitDraft = async () => {
@@ -27,22 +27,22 @@ export function TagPicker({ groupId, value, onChange }: TagPickerProps) {
       setDraft("");
       return;
     }
-    // Reuse an existing tag instead of tripping the unique (group, name) index.
-    const existing = (tags ?? []).find((t) => t.name.toLowerCase() === name.toLowerCase());
-    const id = existing?.id ?? (await createTag.mutateAsync({ group: groupId, name })).id;
-    if (!value.includes(id)) onChange([...value, id]);
+    // Reuse an existing category instead of tripping the unique (group, name) index.
+    const existing = (categories ?? []).find((c) => c.name.toLowerCase() === name.toLowerCase());
+    const id = existing?.id ?? (await createCategory.mutateAsync({ group: groupId, name })).id;
+    onChange(id);
     setDraft("");
     setAdding(false);
   };
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {(tags ?? []).map((tag) => {
-        const selected = value.includes(tag.id);
+      {(categories ?? []).map((category) => {
+        const selected = value === category.id;
         return (
-          <button key={tag.id} type="button" onClick={() => toggle(tag.id)}>
+          <button key={category.id} type="button" onClick={() => toggle(category.id)}>
             <Badge variant={selected ? "default" : "outline"} className="cursor-pointer">
-              {tag.name}
+              {category.name}
               {selected && <X />}
             </Badge>
           </button>
@@ -52,7 +52,7 @@ export function TagPicker({ groupId, value, onChange }: TagPickerProps) {
         <input
           autoFocus
           value={draft}
-          placeholder="Tag name"
+          placeholder="Category name"
           maxLength={30}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commitDraft}
@@ -76,7 +76,7 @@ export function TagPicker({ groupId, value, onChange }: TagPickerProps) {
         <button type="button" onClick={() => setAdding(true)}>
           <Badge variant="ghost" className="cursor-pointer text-muted-foreground">
             <Plus />
-            New tag
+            New category
           </Badge>
         </button>
       )}

@@ -216,11 +216,9 @@ function RouteComponent() {
                               <p className="shrink-0 text-muted-foreground">
                                 {formatDate(expense.date)}
                               </p>
-                              {expense.expand?.tags?.map((tag) => (
-                                <Badge key={tag.id} variant="secondary">
-                                  {tag.name}
-                                </Badge>
-                              ))}
+                              {expense.expand?.category && (
+                                <Badge variant="secondary">{expense.expand.category.name}</Badge>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">

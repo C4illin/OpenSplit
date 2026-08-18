@@ -9,19 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as OverviewRouteImport } from './routes/overview'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OverviewRouteImport } from './routes/overview'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GroupIdIndexRouteImport } from './routes/group.$id/index'
-import { Route as GroupIdSettleRouteImport } from './routes/group.$id/settle'
-import { Route as GroupIdSettingsRouteImport } from './routes/group.$id/settings'
 import { Route as GroupIdAddRouteImport } from './routes/group.$id/add'
+import { Route as GroupIdSettingsRouteImport } from './routes/group.$id/settings'
+import { Route as GroupIdSettleRouteImport } from './routes/group.$id/settle'
 import { Route as GroupIdExpenseExpenseIdRouteImport } from './routes/group.$id/expense.$expenseId'
 
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OverviewRoute = OverviewRouteImport.update({
@@ -29,9 +29,9 @@ const OverviewRoute = OverviewRouteImport.update({
   path: '/overview',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -44,9 +44,9 @@ const GroupIdIndexRoute = GroupIdIndexRouteImport.update({
   path: '/group/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GroupIdSettleRoute = GroupIdSettleRouteImport.update({
-  id: '/group/$id/settle',
-  path: '/group/$id/settle',
+const GroupIdAddRoute = GroupIdAddRouteImport.update({
+  id: '/group/$id/add',
+  path: '/group/$id/add',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GroupIdSettingsRoute = GroupIdSettingsRouteImport.update({
@@ -54,9 +54,9 @@ const GroupIdSettingsRoute = GroupIdSettingsRouteImport.update({
   path: '/group/$id/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GroupIdAddRoute = GroupIdAddRouteImport.update({
-  id: '/group/$id/add',
-  path: '/group/$id/add',
+const GroupIdSettleRoute = GroupIdSettleRouteImport.update({
+  id: '/group/$id/settle',
+  path: '/group/$id/settle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GroupIdExpenseExpenseIdRoute = GroupIdExpenseExpenseIdRouteImport.update({
@@ -149,11 +149,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/overview': {
@@ -163,11 +163,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OverviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -184,11 +184,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/group/$id/settle': {
-      id: '/group/$id/settle'
-      path: '/group/$id/settle'
-      fullPath: '/group/$id/settle'
-      preLoaderRoute: typeof GroupIdSettleRouteImport
+    '/group/$id/add': {
+      id: '/group/$id/add'
+      path: '/group/$id/add'
+      fullPath: '/group/$id/add'
+      preLoaderRoute: typeof GroupIdAddRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/group/$id/settings': {
@@ -198,11 +198,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupIdSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/group/$id/add': {
-      id: '/group/$id/add'
-      path: '/group/$id/add'
-      fullPath: '/group/$id/add'
-      preLoaderRoute: typeof GroupIdAddRouteImport
+    '/group/$id/settle': {
+      id: '/group/$id/settle'
+      path: '/group/$id/settle'
+      fullPath: '/group/$id/settle'
+      preLoaderRoute: typeof GroupIdSettleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/group/$id/expense/$expenseId': {

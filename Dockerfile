@@ -21,7 +21,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY main.go webpush.go ./
-RUN CGO_ENABLED=0 go build -o pocketbase .
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o pocketbase .
 
 # Stage 3: PocketBase + static frontend
 FROM alpine:latest

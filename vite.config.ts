@@ -218,6 +218,10 @@ export default defineConfig({
   ],
   server: {
     port: 5050,
+    proxy: {
+      "/api": "http://localhost:8090",
+      "/_": "http://localhost:8090",
+    },
   },
   resolve: {
     alias: {

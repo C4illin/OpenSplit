@@ -13,7 +13,7 @@ ENV npm_config_verify_deps_before_run=false
 RUN pnpm build
 
 # Stage 2: Build the custom PocketBase binary (adds Web Push, see main.go)
-FROM golang:1.26-alpine AS backend
+FROM golang:1.27-alpine AS backend
 
 WORKDIR /app
 

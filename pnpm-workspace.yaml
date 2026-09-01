@@ -4,8 +4,8 @@ allowBuilds:
   msw: false
   sqlite3: false
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@0.2.9
-  vite-plus: 0.2.9
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.0
+  vite-plus: 0.3.0
 overrides:
   vite: "catalog:"
 peerDependencyRules:

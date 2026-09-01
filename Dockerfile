@@ -9,7 +9,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
-ENV npm_config_verify_deps_before_run=false
+ENV pnpm_config_verify_deps_before_run=false
 RUN pnpm build
 
 # Stage 2: Build the custom PocketBase binary (adds Web Push, see main.go)

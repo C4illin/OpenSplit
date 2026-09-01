@@ -56,7 +56,7 @@
     "pocketbase-typegen": "^1.5.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.69.0",
-    "vite": "npm:@voidzero-dev/vite-plus-core@0.3.0",
+    "vite": "catalog:",
     "vite-plugin-pwa": "^1.3.0",
     "vite-plus": "catalog:",
     "workbox-core": "^7.4.1",

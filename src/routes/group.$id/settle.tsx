@@ -21,8 +21,12 @@ import { ArrowRight, Check } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 // Settlement details stashed before app-switching to Swish, read back when the
-// app-switch callback returns us to this page.
+// app-switch callback returns us to this page. Stored in localStorage rather
+// than sessionStorage because the callback can land in a fresh browsing
+// context (observed on iOS), where sessionStorage starts empty.
 const PENDING_KEY = "swish-pending-settlement";
+// A stashed settlement older than this belongs to an abandoned attempt.
+const PENDING_MAX_AGE_MS = 15 * 60 * 1000;
 
 type PendingSettlement = {
   group: string;
@@ -31,6 +35,17 @@ type PendingSettlement = {
   amount: number;
   currency: string;
   label: string;
+  stashedAt: number;
+};
+
+// Shape of the `result` query param Swish appends on app-switch return,
+// observed from a real payment. `result` is "paid" on success.
+type SwishCallbackResult = {
+  version?: number;
+  result?: string;
+  amount?: string;
+  message?: string;
+  payee?: string;
 };
 
 export const Route = createFileRoute("/group/$id/settle")({
@@ -141,7 +156,7 @@ function RouteComponent() {
     (s) => s.from.id !== currentUserId && s.to.id !== currentUserId,
   );
 
-  const recordPaid = async (payload: PendingSettlement) => {
+  const recordPaid = async (payload: Omit<PendingSettlement, "stashedAt">) => {
     const { label, ...data } = payload;
     const rec = await createSettlement.mutateAsync(data);
     setUndo({ id: rec.id, label });
@@ -168,9 +183,10 @@ function RouteComponent() {
       to: s.to.id,
       amount: s.amount,
       currency,
-      label: `Marked paid to ${s.to.name || s.to.username}`,
+      label: `Paid ${s.to.name || s.to.username} via Swish`,
+      stashedAt: Date.now(),
     };
-    sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+    localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
     const callbackUrl = window.location.origin + window.location.pathname;
     window.location.href = method.buildUrl({
       payee: s.to,
@@ -186,17 +202,24 @@ function RouteComponent() {
     const params = new URLSearchParams(window.location.search);
     if (!params.has("result")) return;
     const result = params.get("result");
-    const raw = sessionStorage.getItem(PENDING_KEY);
-    sessionStorage.removeItem(PENDING_KEY);
+    const raw = localStorage.getItem(PENDING_KEY);
+    localStorage.removeItem(PENDING_KEY);
     // Strip the result param so a manual refresh doesn't re-record.
     window.history.replaceState(null, "", window.location.pathname);
     if (!raw) return;
+    let outcome: SwishCallbackResult | null = null;
     try {
-      const pending = JSON.parse(raw) as PendingSettlement;
-      // TODO: gate on the success value once we know it. For now surface the
-      // raw Swish callback result in the banner so we can read it from a real
-      // payment (and undo if it wasn't actually a success).
-      void recordPaid({ ...pending, label: `${pending.label} · result=${result}` });
+      outcome = JSON.parse(result ?? "") as SwishCallbackResult;
+    } catch {
+      // Unrecognized callback payload — treat as not paid.
+    }
+    if (outcome?.result !== "paid") return;
+    try {
+      const { stashedAt, ...pending } = JSON.parse(raw) as PendingSettlement;
+      if (Date.now() - stashedAt > PENDING_MAX_AGE_MS) return;
+      // The callback comes from the Swish app, not a verified server-side
+      // confirmation, so recording is still optimistic — hence the undo prompt.
+      void recordPaid(pending);
     } catch {
       // Ignore malformed pending data.
     }

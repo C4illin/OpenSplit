@@ -218,6 +218,7 @@ export default defineConfig({
   ],
   server: {
     port: 5050,
+    open: true,
     proxy: {
       "/api": "http://localhost:8090",
       "/_": "http://localhost:8090",

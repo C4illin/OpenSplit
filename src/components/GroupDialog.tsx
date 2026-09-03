@@ -55,6 +55,7 @@ export const GroupDialog = () => {
               e.stopPropagation();
               await form.handleSubmit();
             }}
+            className="flex flex-col gap-4"
           >
             <form.Field
               name="name"

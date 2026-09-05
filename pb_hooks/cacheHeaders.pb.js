@@ -21,6 +21,9 @@ routerUse((e) => {
     if (path.endsWith(".webmanifest")) {
       e.response.header().set("Content-Type", "application/manifest+json; charset=utf-8");
     }
+  } else if (path.startsWith("/api/") && !path.startsWith("/api/files/")) {
+    // /api/files/ is excluded so avatars stay cacheable.
+    e.response.header().set("Cache-Control", "no-store");
   }
 
   return e.next();

@@ -5,16 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wrapper } from "@/components/Wrapper";
 import { useGroups } from "@/hooks/useApi";
-import { getAvatarUrl, pb } from "@/lib/pocketbase";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { getAvatarUrl } from "@/lib/pocketbase";
+import { requireAuth } from "@/lib/requireAuth";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { User } from "lucide-react";
 
 export const Route = createFileRoute("/overview")({
-  beforeLoad: () => {
-    if (!pb.authStore.isValid) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: RouteComponent,
 });
 

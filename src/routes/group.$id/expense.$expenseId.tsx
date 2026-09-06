@@ -14,16 +14,13 @@ import {
 import { useAppForm } from "@/hooks/useAppForm";
 import { expenseFormDefaults } from "@/lib/expense-form";
 import { pb } from "@/lib/pocketbase";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { requireAuth } from "@/lib/requireAuth";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Check, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/group/$id/expense/$expenseId")({
-  beforeLoad: () => {
-    if (!pb.authStore.isValid) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: EditExpensePage,
 });
 

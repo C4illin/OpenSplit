@@ -8,8 +8,9 @@ import { Wrapper } from "@/components/Wrapper";
 import { useConverter, useCreateExpense, useGroup } from "@/hooks/useApi";
 import { useAppForm, withForm } from "@/hooks/useAppForm";
 import { pb } from "@/lib/pocketbase";
+import { requireAuth } from "@/lib/requireAuth";
 import { cn } from "@/lib/utils";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
 
@@ -19,11 +20,7 @@ type Step = "amount" | "title" | "split";
 const STEPS: Step[] = ["amount", "title", "split"];
 
 export const Route = createFileRoute("/group/$id/add")({
-  beforeLoad: () => {
-    if (!pb.authStore.isValid) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: AddExpensePage,
 });
 

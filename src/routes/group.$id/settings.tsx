@@ -23,18 +23,14 @@ import {
   useGroup,
   useUpdateGroup,
 } from "@/hooks/useApi";
-import { pb } from "@/lib/pocketbase";
+import { requireAuth } from "@/lib/requireAuth";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Check, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/group/$id/settings")({
-  beforeLoad: () => {
-    if (!pb.authStore.isValid) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: GroupSettingsPage,
 });
 

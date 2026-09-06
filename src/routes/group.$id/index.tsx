@@ -10,19 +10,16 @@ import { useExpenses, useGroup, useSettlements, useSplits } from "@/hooks/useApi
 import { useAuth } from "@/hooks/useAuth";
 import { computeBalances } from "@/lib/balances";
 import { formatAmount } from "@/lib/format";
-import { getAvatarUrl, pb } from "@/lib/pocketbase";
+import { getAvatarUrl } from "@/lib/pocketbase";
+import { requireAuth } from "@/lib/requireAuth";
 import type { IsoDateString } from "@/types/pocketbase-types.gen";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowRightLeft, Plus, Settings } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 export const Route = createFileRoute("/group/$id/")({
-  beforeLoad: () => {
-    if (!pb.authStore.isValid) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: RouteComponent,
 });
 

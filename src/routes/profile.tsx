@@ -14,18 +14,15 @@ import {
   useEnablePush,
   usePushSubscription,
 } from "@/hooks/usePush";
-import { getAvatarUrl, pb } from "@/lib/pocketbase";
+import { getAvatarUrl } from "@/lib/pocketbase";
+import { requireAuth } from "@/lib/requireAuth";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/profile")({
-  beforeLoad: () => {
-    if (!pb.authStore.isValid) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: RouteComponent,
 });
 

@@ -1,16 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAcceptInvite, useInvitePreview } from "@/hooks/useApi";
-import { pb } from "@/lib/pocketbase";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { requireAuth } from "@/lib/requireAuth";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/invite/$token")({
-  beforeLoad: ({ location }) => {
-    if (!pb.authStore.isValid) {
-      // Send the user to login, and bring them back here once they're signed in.
-      throw redirect({ to: "/", search: { redirect: location.href } });
-    }
-  },
+  beforeLoad: requireAuth,
   component: RouteComponent,
 });
 

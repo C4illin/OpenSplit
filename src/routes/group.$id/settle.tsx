@@ -15,8 +15,9 @@ import { computeBalances, computeSettlements, type Settlement } from "@/lib/bala
 import { formatAmount } from "@/lib/format";
 import { availableMethods, type PaymentMethod } from "@/lib/payments";
 import { getAvatarUrl, pb } from "@/lib/pocketbase";
+import { requireAuth } from "@/lib/requireAuth";
 import type { UsersResponse } from "@/types/pocketbase-types.gen";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -49,11 +50,7 @@ type SwishCallbackResult = {
 };
 
 export const Route = createFileRoute("/group/$id/settle")({
-  beforeLoad: () => {
-    if (!pb.authStore.isValid) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: RouteComponent,
 });
 

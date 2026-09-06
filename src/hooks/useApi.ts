@@ -10,6 +10,7 @@ import type {
   RatesResponse,
   RecurringExpensesFrequencyOptions,
   RecurringExpensesResponse,
+  RecurringSplitsResponse,
   SettlementsResponse,
   SplitsResponse,
   UsersResponse,
@@ -352,15 +353,17 @@ export const useDeleteExpense = () => {
 // Recurring expenses
 //
 // Templates that the server turns into regular expenses on a schedule (see
-// pb_hooks/recurring.js). The client only manages the templates; generated
-// expenses show up through the normal ["expenses", groupId] query.
+// pb_hooks/recurring.js). The client only manages the templates and their
+// `recurring_splits` rows (one per member, like `splits` for an expense);
+// generated expenses show up through the normal ["expenses", groupId] query.
 
 type RecurringExpensesExpand = {
   paidBy?: UsersResponse;
   category?: CategoriesResponse;
+  recurring_splits_via_recurring?: RecurringSplitsResponse[];
 };
 
-export type RecurringExpense = RecurringExpensesResponse<RecurringSplit[], RecurringExpensesExpand>;
+export type RecurringExpense = RecurringExpensesResponse<RecurringExpensesExpand>;
 
 export const useRecurringExpenses = (groupId: string) => {
   return useQuery({
@@ -380,7 +383,9 @@ export const useRecurringExpense = (id: string) => {
   return useQuery({
     queryKey: ["recurringExpense", id],
     queryFn: async () => {
-      return await pb.collection("recurring_expenses").getOne<RecurringExpense>(id);
+      return await pb.collection("recurring_expenses").getOne<RecurringExpense>(id, {
+        expand: "recurring_splits_via_recurring",
+      });
     },
     enabled: !!id,
   });
@@ -392,7 +397,6 @@ type RecurringExpenseFields = {
   currency: string;
   paidBy: string;
   category: string;
-  splits: RecurringSplit[];
   frequency: RecurringExpensesFrequencyOptions;
   /** Repeat every N units of `frequency` (1 = every week/month/year). */
   interval: number;
@@ -403,15 +407,31 @@ type RecurringExpenseFields = {
   active: boolean;
 };
 
+const createRecurringSplits = (recurringId: string, splits: RecurringSplit[]) =>
+  Promise.all(
+    splits.map((split) =>
+      pb.collection("recurring_splits").create({
+        recurring: recurringId,
+        user: split.user,
+        percentage: split.percentage,
+      }),
+    ),
+  );
+
 export const useCreateRecurringExpense = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: RecurringExpenseFields & { group: string }) => {
-      return await pb.collection("recurring_expenses").create<RecurringExpense>({
-        ...data,
+    mutationFn: async (
+      data: RecurringExpenseFields & { group: string; splits: RecurringSplit[] },
+    ) => {
+      const { splits, ...fields } = data;
+      const recurring = await pb.collection("recurring_expenses").create<RecurringExpense>({
+        ...fields,
         // The first due day anchors the day-of-month for every later occurrence.
-        startDate: data.nextDate,
+        startDate: fields.nextDate,
       });
+      await createRecurringSplits(recurring.id, splits);
+      return recurring;
     },
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: ["recurringExpenses", variables.group] });
@@ -423,15 +443,24 @@ type UpdateRecurringExpenseData = {
   id: string;
   group: string;
   fields: Partial<RecurringExpenseFields & { startDate: string }>;
+  /** When given, replaces the template's split rows. */
+  splits?: { next: RecurringSplit[]; existingIds: string[] };
 };
 
 export const useUpdateRecurringExpense = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: UpdateRecurringExpenseData) => {
-      return await pb
+      const recurring = await pb
         .collection("recurring_expenses")
         .update<RecurringExpense>(data.id, data.fields);
+      if (data.splits) {
+        await Promise.all(
+          data.splits.existingIds.map((id) => pb.collection("recurring_splits").delete(id)),
+        );
+        await createRecurringSplits(data.id, data.splits.next);
+      }
+      return recurring;
     },
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: ["recurringExpense", variables.id] });
@@ -443,9 +472,11 @@ export const useUpdateRecurringExpense = () => {
 export const useDeleteRecurringExpense = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { id: string; group: string }) => {
-      // Expenses already generated from the template are kept; PocketBase only
-      // clears their (non-cascading) `recurring` back-reference.
+    mutationFn: async (data: { id: string; group: string; splitIds: string[] }) => {
+      // Split rows point at the template through a required relation, so they
+      // go first. Expenses already generated from the template are kept;
+      // PocketBase only clears their (non-cascading) `recurring` back-reference.
+      await Promise.all(data.splitIds.map((id) => pb.collection("recurring_splits").delete(id)));
       await pb.collection("recurring_expenses").delete(data.id);
     },
     onSuccess: async (_data, variables) => {

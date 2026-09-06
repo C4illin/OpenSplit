@@ -6,9 +6,10 @@
 // an isolated context and cannot see top-level functions of a hook file.
 //
 // A `recurring_expenses` record is a template: title, amount, currency, payer,
-// category, a JSON list of splits (`[{ user, percentage }]`) and a schedule
-// (`frequency` stepped every `interval` units, `nextDate`, optional `endDate`,
-// `active`; a missing/zero `interval` means 1). Whenever `nextDate`
+// category and a schedule (`frequency` stepped every `interval` units,
+// `nextDate`, optional `endDate`, `active`; a missing/zero `interval` means 1).
+// Its shares are `recurring_splits` rows (`recurring`, `user`, `percentage`),
+// mirroring how `splits` rows belong to an expense. Whenever `nextDate`
 // is due, materialize() turns it into a regular `expenses` row (plus `splits`
 // rows) that behaves exactly like a manually added expense, then advances
 // `nextDate`. Balances only ever look at `expenses`, so the template itself
@@ -108,22 +109,14 @@ function convertToBase(app, amount, from, to, date) {
   return roundTo((amount * rateTo) / rateFrom, currencyDecimals(app, to));
 }
 
-function parseSplits(template, members) {
-  let splits;
-  try {
-    splits = JSON.parse(template.getString("splits") || "[]");
-  } catch {
-    splits = [];
-  }
-  if (!Array.isArray(splits)) return [];
-  return splits.filter(
-    (split) =>
-      split &&
-      typeof split.user === "string" &&
-      members.includes(split.user) &&
-      typeof split.percentage === "number" &&
-      split.percentage > 0,
-  );
+// The template's split rows, restricted to current members with a positive share.
+function loadSplits(app, template, members) {
+  const rows = app.findRecordsByFilter("recurring_splits", "recurring = {:id}", "", 0, 0, {
+    id: template.id,
+  });
+  return rows
+    .map((row) => ({ user: row.get("user"), percentage: row.getFloat("percentage") }))
+    .filter((split) => members.includes(split.user) && split.percentage > 0);
 }
 
 function createExpense(app, template, group, splits, dueDate, baseAmount) {
@@ -190,7 +183,7 @@ function materializeTemplate(app, template, now) {
   if (!members.includes(template.get("paidBy"))) {
     throw new Error("payer is no longer a member of the group");
   }
-  const splits = parseSplits(template, members);
+  const splits = loadSplits(app, template, members);
   if (splits.length === 0) {
     throw new Error("no valid splits among current group members");
   }

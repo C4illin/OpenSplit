@@ -39,6 +39,8 @@ function EditRecurringExpensePage() {
     );
   }
 
+  const existingSplitIds = recurring.expand?.recurring_splits_via_recurring?.map((s) => s.id) ?? [];
+
   const toggleActive = async () => {
     setError(null);
     try {
@@ -64,7 +66,11 @@ function EditRecurringExpensePage() {
           onClick={async () => {
             if (!confirm("Delete this recurring expense? Expenses already added are kept.")) return;
             try {
-              await deleteRecurring.mutateAsync({ id: recurringId, group: id });
+              await deleteRecurring.mutateAsync({
+                id: recurringId,
+                group: id,
+                splitIds: existingSplitIds,
+              });
             } catch {
               setError("Couldn't delete the recurring expense. Try again.");
               return;
@@ -113,11 +119,13 @@ function EditRecurringExpensePage() {
           setError(null);
           // Moving the due day re-anchors the day-of-month for later occurrences.
           const dayChanged = toDayInput(values.nextDate) !== toDayInput(recurring.nextDate);
+          const { splits, ...fields } = values;
           try {
             await updateRecurring.mutateAsync({
               id: recurringId,
               group: id,
-              fields: { ...values, ...(dayChanged ? { startDate: values.nextDate } : {}) },
+              fields: { ...fields, ...(dayChanged ? { startDate: values.nextDate } : {}) },
+              splits: { next: splits, existingIds: existingSplitIds },
             });
           } catch {
             setError("Couldn't save the recurring expense. Try again.");

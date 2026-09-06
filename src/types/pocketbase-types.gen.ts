@@ -20,6 +20,7 @@ export const Collections = {
 	PushSubscriptions: "push_subscriptions",
 	Rates: "rates",
 	RecurringExpenses: "recurring_expenses",
+	RecurringSplits: "recurring_splits",
 	Settlements: "settlements",
 	Splits: "splits",
 	Users: "users",
@@ -189,7 +190,7 @@ export const RecurringExpensesFrequencyOptions = {
 	"yearly": "yearly",
 } as const
 export type RecurringExpensesFrequencyOptions = typeof RecurringExpensesFrequencyOptions[keyof typeof RecurringExpensesFrequencyOptions]
-export type RecurringExpensesRecord<Tsplits = unknown> = {
+export type RecurringExpensesRecord = {
 	active?: boolean
 	amount: number
 	category?: RecordIdString
@@ -202,10 +203,18 @@ export type RecurringExpensesRecord<Tsplits = unknown> = {
 	interval?: number
 	nextDate: IsoDateString
 	paidBy: RecordIdString
-	splits: null | Tsplits
 	startDate: IsoDateString
 	title: string
 	updated: IsoAutoDateString
+}
+
+export type RecurringSplitsRecord = {
+	created: IsoAutoDateString
+	id: string
+	percentage: number
+	recurring: RecordIdString
+	updated: IsoAutoDateString
+	user: RecordIdString
 }
 
 export type SettlementsRecord = {
@@ -257,7 +266,8 @@ export type InvitesResponse<Texpand = unknown> = Required<InvitesRecord> & BaseS
 export type NotificationsResponse<Texpand = unknown> = Required<NotificationsRecord> & BaseSystemFields<Texpand>
 export type PushSubscriptionsResponse<Texpand = unknown> = Required<PushSubscriptionsRecord> & BaseSystemFields<Texpand>
 export type RatesResponse<Trates = unknown, Texpand = unknown> = Required<RatesRecord<Trates>> & BaseSystemFields<Texpand>
-export type RecurringExpensesResponse<Tsplits = unknown, Texpand = unknown> = Required<RecurringExpensesRecord<Tsplits>> & BaseSystemFields<Texpand>
+export type RecurringExpensesResponse<Texpand = unknown> = Required<RecurringExpensesRecord> & BaseSystemFields<Texpand>
+export type RecurringSplitsResponse<Texpand = unknown> = Required<RecurringSplitsRecord> & BaseSystemFields<Texpand>
 export type SettlementsResponse<Texpand = unknown> = Required<SettlementsRecord> & BaseSystemFields<Texpand>
 export type SplitsResponse<Texpand = unknown> = Required<SplitsRecord> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
@@ -279,6 +289,7 @@ export type CollectionRecords = {
 	push_subscriptions: PushSubscriptionsRecord
 	rates: RatesRecord
 	recurring_expenses: RecurringExpensesRecord
+	recurring_splits: RecurringSplitsRecord
 	settlements: SettlementsRecord
 	splits: SplitsRecord
 	users: UsersRecord
@@ -299,6 +310,7 @@ export type CollectionResponses = {
 	push_subscriptions: PushSubscriptionsResponse
 	rates: RatesResponse
 	recurring_expenses: RecurringExpensesResponse
+	recurring_splits: RecurringSplitsResponse
 	settlements: SettlementsResponse
 	splits: SplitsResponse
 	users: UsersResponse

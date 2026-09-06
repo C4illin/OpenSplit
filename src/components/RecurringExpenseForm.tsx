@@ -74,7 +74,7 @@ export function RecurringExpenseForm({
   children,
 }: Props) {
   const currentUserId = pb.authStore.record?.id ?? "";
-  const existingSplits = initial?.splits ?? [];
+  const existingSplits = initial?.expand?.recurring_splits_via_recurring ?? [];
   const today = todayInput();
 
   const [schedule, setSchedule] = useState<Schedule>(() => ({

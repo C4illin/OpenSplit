@@ -10,6 +10,7 @@ type PendingOAuth = {
   state: string;
   codeVerifier: string;
   redirectUrl: string;
+  returnTo?: string;
 };
 
 export const useAuth = () => {
@@ -22,19 +23,22 @@ export const useAuth = () => {
     return unsubscribe;
   }, []);
 
-  const loginWithGoogle = useCallback(async () => {
+  const loginWithGoogle = useCallback(async (returnTo?: string) => {
     const authMethods = await pb.collection("users").listAuthMethods();
     const provider = authMethods.oauth2?.providers?.find((p) => p.name === OAUTH_PROVIDER);
     if (!provider) {
       throw new Error("Google OAuth provider is not configured on the server");
     }
 
+    // The OAuth redirect URI must match what's registered with the provider, so the
+    // return path is stashed in sessionStorage rather than appended to the URL.
     const redirectUrl = `${window.location.origin}/`;
     const pending: PendingOAuth = {
       provider: provider.name,
       state: provider.state,
       codeVerifier: provider.codeVerifier,
       redirectUrl,
+      returnTo,
     };
     sessionStorage.setItem(OAUTH_PENDING_KEY, JSON.stringify(pending));
 
@@ -53,11 +57,16 @@ export const useAuth = () => {
   };
 };
 
-export async function finalizeOAuthRedirect(): Promise<boolean> {
+export type OAuthResult = {
+  /** Path the user was trying to reach before being sent to login, if any. */
+  returnTo?: string;
+};
+
+export async function finalizeOAuthRedirect(): Promise<OAuthResult | null> {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
   const state = params.get("state");
-  if (!code || !state) return false;
+  if (!code || !state) return null;
 
   const raw = sessionStorage.getItem(OAUTH_PENDING_KEY);
   sessionStorage.removeItem(OAUTH_PENDING_KEY);
@@ -72,7 +81,7 @@ export async function finalizeOAuthRedirect(): Promise<boolean> {
 
   if (!raw) {
     cleanUrl();
-    return false;
+    return null;
   }
 
   const pending = JSON.parse(raw) as PendingOAuth;
@@ -85,7 +94,7 @@ export async function finalizeOAuthRedirect(): Promise<boolean> {
     await pb
       .collection("users")
       .authWithOAuth2Code(pending.provider, code, pending.codeVerifier, pending.redirectUrl);
-    return true;
+    return { returnTo: pending.returnTo };
   } finally {
     cleanUrl();
   }

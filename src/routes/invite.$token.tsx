@@ -5,9 +5,10 @@ import { pb } from "@/lib/pocketbase";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/invite/$token")({
-  beforeLoad: () => {
+  beforeLoad: ({ location }) => {
     if (!pb.authStore.isValid) {
-      throw redirect({ to: "/" });
+      // Send the user to login, and bring them back here once they're signed in.
+      throw redirect({ to: "/", search: { redirect: location.href } });
     }
   },
   component: RouteComponent,

@@ -5,11 +5,26 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { finalizeOAuthRedirect, useAuth } from "../hooks/useAuth";
 
+type LoginSearch = {
+  /** Same-origin path to return to after signing in (e.g. an invite link). */
+  redirect?: string;
+};
+
+// Only accept same-origin paths so the param can't be abused as an open redirect.
+function safeRedirect(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return undefined;
+  return value;
+}
+
 export const Route = createFileRoute("/")({
-  beforeLoad: () => {
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    redirect: safeRedirect(search.redirect),
+  }),
+  beforeLoad: ({ search }) => {
     // Don't redirect mid-OAuth-callback; the component finishes the code exchange.
     if (pb.authStore.isValid && !new URLSearchParams(window.location.search).has("code")) {
-      throw redirect({ to: "/overview" });
+      throw redirect({ href: search.redirect ?? "/overview" });
     }
   },
   component: RouteComponent,
@@ -18,6 +33,7 @@ export const Route = createFileRoute("/")({
 function RouteComponent() {
   const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const { redirect: returnTo } = Route.useSearch();
   const [finalizing, setFinalizing] = useState(
     typeof window !== "undefined" && new URLSearchParams(window.location.search).has("code"),
   );
@@ -25,8 +41,8 @@ function RouteComponent() {
   useEffect(() => {
     if (!finalizing) return;
     finalizeOAuthRedirect()
-      .then(async (ok) => {
-        if (ok) await navigate({ to: "/overview" });
+      .then(async (result) => {
+        if (result) await navigate({ href: result.returnTo ?? "/overview" });
       })
       .catch((err) => {
         console.error("OAuth callback failed:", err);
@@ -36,7 +52,7 @@ function RouteComponent() {
 
   const handleLogin = async () => {
     try {
-      await loginWithGoogle();
+      await loginWithGoogle(returnTo);
     } catch (error) {
       console.error("Login failed:", error);
     }

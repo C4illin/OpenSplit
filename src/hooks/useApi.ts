@@ -450,7 +450,6 @@ export const useCreateInvite = () => {
         // No existing invite, create one
         return await pb.collection("invites").create<InvitesResponse>({
           group: groupId,
-          token: crypto.randomUUID(),
         });
       }
     },

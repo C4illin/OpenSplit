@@ -2,9 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"syscall"
+	"time"
 
 	webpush "github.com/SherClockHolmes/webpush-go"
 	"github.com/pocketbase/dbx"
@@ -12,6 +17,41 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/routine"
 )
+
+func isDisallowedPushIP(ip net.IP) bool {
+	if ip == nil {
+		return true
+	}
+	if ip.IsLoopback() || ip.IsPrivate() || ip.IsUnspecified() ||
+		ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsMulticast() {
+		return true
+	}
+	// CGNAT 100.64.0.0/10 (net.IP.IsPrivate does not cover it)
+	if ip4 := ip.To4(); ip4 != nil && ip4[0] == 100 && ip4[1] >= 64 && ip4[1] <= 127 {
+		return true
+	}
+	return false
+}
+
+// dialControl rejects any resolved connect address in a disallowed range. It
+// runs at connect time (after DNS resolution) for both plaintext and TLS dials,
+// so it also defeats DNS rebinding.
+func dialControl(_, address string, _ syscall.RawConn) error {
+	host, _, err := net.SplitHostPort(address)
+	if err != nil {
+		return err
+	}
+	if isDisallowedPushIP(net.ParseIP(host)) {
+		return fmt.Errorf("webpush: refusing to dial non-public endpoint address %s", address)
+	}
+	return nil
+}
+
+var pushHTTPClient = func() *http.Client {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.DialContext = (&net.Dialer{Timeout: 10 * time.Second, Control: dialControl}).DialContext
+	return &http.Client{Timeout: 30 * time.Second, Transport: t}
+}()
 
 type vapidKeys struct {
 	PublicKey  string `json:"publicKey"`
@@ -119,13 +159,21 @@ func registerWebPush(app *pocketbase.PocketBase) {
 }
 
 func sendPush(app core.App, keys *vapidKeys, subscription *core.Record, payload []byte) {
+	endpoint := subscription.GetString("endpoint")
+	if u, err := url.Parse(endpoint); err != nil || u.Scheme != "https" || u.Host == "" {
+		app.Logger().Warn("webpush: skipping subscription with non-https endpoint",
+			"subscription", subscription.Id)
+		return
+	}
+
 	resp, err := webpush.SendNotification(payload, &webpush.Subscription{
-		Endpoint: subscription.GetString("endpoint"),
+		Endpoint: endpoint,
 		Keys: webpush.Keys{
 			P256dh: subscription.GetString("p256dh"),
 			Auth:   subscription.GetString("auth"),
 		},
 	}, &webpush.Options{
+		HTTPClient:      pushHTTPClient,
 		Subscriber:      vapidSubject(),
 		VAPIDPublicKey:  keys.PublicKey,
 		VAPIDPrivateKey: keys.PrivateKey,

@@ -1,4 +1,5 @@
 import { convert, ratesForDate } from "@/lib/rates";
+import type { RecurringSplit } from "@/lib/recurring";
 import type {
   CategoriesResponse,
   CurrenciesResponse,
@@ -7,6 +8,8 @@ import type {
   GroupsResponse,
   InvitesResponse,
   RatesResponse,
+  RecurringExpensesFrequencyOptions,
+  RecurringExpensesResponse,
   SettlementsResponse,
   SplitsResponse,
   UsersResponse,
@@ -342,6 +345,112 @@ export const useDeleteExpense = () => {
       await queryClient.invalidateQueries({
         queryKey: ["splits", variables.group],
       });
+    },
+  });
+};
+
+// Recurring expenses
+//
+// Templates that the server turns into regular expenses on a schedule (see
+// pb_hooks/recurring.js). The client only manages the templates; generated
+// expenses show up through the normal ["expenses", groupId] query.
+
+type RecurringExpensesExpand = {
+  paidBy?: UsersResponse;
+  category?: CategoriesResponse;
+};
+
+export type RecurringExpense = RecurringExpensesResponse<RecurringSplit[], RecurringExpensesExpand>;
+
+export const useRecurringExpenses = (groupId: string) => {
+  return useQuery({
+    queryKey: ["recurringExpenses", groupId],
+    queryFn: async () => {
+      return await pb.collection("recurring_expenses").getFullList<RecurringExpense>({
+        filter: `group = "${groupId}"`,
+        sort: "-active,nextDate",
+        expand: "paidBy,category",
+      });
+    },
+    enabled: !!groupId,
+  });
+};
+
+export const useRecurringExpense = (id: string) => {
+  return useQuery({
+    queryKey: ["recurringExpense", id],
+    queryFn: async () => {
+      return await pb.collection("recurring_expenses").getOne<RecurringExpense>(id);
+    },
+    enabled: !!id,
+  });
+};
+
+type RecurringExpenseFields = {
+  title: string;
+  amount: number;
+  currency: string;
+  paidBy: string;
+  category: string;
+  splits: RecurringSplit[];
+  frequency: RecurringExpensesFrequencyOptions;
+  /** Repeat every N units of `frequency` (1 = every week/month/year). */
+  interval: number;
+  /** Midnight UTC of the next due day (see fromDayInput). */
+  nextDate: string;
+  /** Midnight UTC of the last day to repeat on, or "" for no end. */
+  endDate: string;
+  active: boolean;
+};
+
+export const useCreateRecurringExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: RecurringExpenseFields & { group: string }) => {
+      return await pb.collection("recurring_expenses").create<RecurringExpense>({
+        ...data,
+        // The first due day anchors the day-of-month for every later occurrence.
+        startDate: data.nextDate,
+      });
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ["recurringExpenses", variables.group] });
+    },
+  });
+};
+
+type UpdateRecurringExpenseData = {
+  id: string;
+  group: string;
+  fields: Partial<RecurringExpenseFields & { startDate: string }>;
+};
+
+export const useUpdateRecurringExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: UpdateRecurringExpenseData) => {
+      return await pb
+        .collection("recurring_expenses")
+        .update<RecurringExpense>(data.id, data.fields);
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ["recurringExpense", variables.id] });
+      await queryClient.invalidateQueries({ queryKey: ["recurringExpenses", variables.group] });
+    },
+  });
+};
+
+export const useDeleteRecurringExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { id: string; group: string }) => {
+      // Expenses already generated from the template are kept; PocketBase only
+      // clears their (non-cascading) `recurring` back-reference.
+      await pb.collection("recurring_expenses").delete(data.id);
+    },
+    onSuccess: async (_data, variables) => {
+      queryClient.removeQueries({ queryKey: ["recurringExpense", variables.id] });
+      await queryClient.invalidateQueries({ queryKey: ["recurringExpenses", variables.group] });
     },
   });
 };

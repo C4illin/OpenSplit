@@ -18,6 +18,9 @@ import { Route as GroupIdAddRouteImport } from './routes/group.$id/add'
 import { Route as GroupIdSettingsRouteImport } from './routes/group.$id/settings'
 import { Route as GroupIdSettleRouteImport } from './routes/group.$id/settle'
 import { Route as GroupIdExpenseExpenseIdRouteImport } from './routes/group.$id/expense.$expenseId'
+import { Route as GroupIdRecurringIndexRouteImport } from './routes/group.$id/recurring.index'
+import { Route as GroupIdRecurringRecurringIdRouteImport } from './routes/group.$id/recurring.$recurringId'
+import { Route as GroupIdRecurringAddRouteImport } from './routes/group.$id/recurring.add'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +67,22 @@ const GroupIdExpenseExpenseIdRoute = GroupIdExpenseExpenseIdRouteImport.update({
   path: '/group/$id/expense/$expenseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GroupIdRecurringIndexRoute = GroupIdRecurringIndexRouteImport.update({
+  id: '/group/$id/recurring/',
+  path: '/group/$id/recurring/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupIdRecurringRecurringIdRoute =
+  GroupIdRecurringRecurringIdRouteImport.update({
+    id: '/group/$id/recurring/$recurringId',
+    path: '/group/$id/recurring/$recurringId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GroupIdRecurringAddRoute = GroupIdRecurringAddRouteImport.update({
+  id: '/group/$id/recurring/add',
+  path: '/group/$id/recurring/add',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +94,9 @@ export interface FileRoutesByFullPath {
   '/group/$id/settle': typeof GroupIdSettleRoute
   '/group/$id/': typeof GroupIdIndexRoute
   '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
+  '/group/$id/recurring/$recurringId': typeof GroupIdRecurringRecurringIdRoute
+  '/group/$id/recurring/add': typeof GroupIdRecurringAddRoute
+  '/group/$id/recurring/': typeof GroupIdRecurringIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +108,9 @@ export interface FileRoutesByTo {
   '/group/$id/settle': typeof GroupIdSettleRoute
   '/group/$id': typeof GroupIdIndexRoute
   '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
+  '/group/$id/recurring/$recurringId': typeof GroupIdRecurringRecurringIdRoute
+  '/group/$id/recurring/add': typeof GroupIdRecurringAddRoute
+  '/group/$id/recurring': typeof GroupIdRecurringIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +123,9 @@ export interface FileRoutesById {
   '/group/$id/settle': typeof GroupIdSettleRoute
   '/group/$id/': typeof GroupIdIndexRoute
   '/group/$id/expense/$expenseId': typeof GroupIdExpenseExpenseIdRoute
+  '/group/$id/recurring/$recurringId': typeof GroupIdRecurringRecurringIdRoute
+  '/group/$id/recurring/add': typeof GroupIdRecurringAddRoute
+  '/group/$id/recurring/': typeof GroupIdRecurringIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +139,9 @@ export interface FileRouteTypes {
     | '/group/$id/settle'
     | '/group/$id/'
     | '/group/$id/expense/$expenseId'
+    | '/group/$id/recurring/$recurringId'
+    | '/group/$id/recurring/add'
+    | '/group/$id/recurring/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +153,9 @@ export interface FileRouteTypes {
     | '/group/$id/settle'
     | '/group/$id'
     | '/group/$id/expense/$expenseId'
+    | '/group/$id/recurring/$recurringId'
+    | '/group/$id/recurring/add'
+    | '/group/$id/recurring'
   id:
     | '__root__'
     | '/'
@@ -133,6 +167,9 @@ export interface FileRouteTypes {
     | '/group/$id/settle'
     | '/group/$id/'
     | '/group/$id/expense/$expenseId'
+    | '/group/$id/recurring/$recurringId'
+    | '/group/$id/recurring/add'
+    | '/group/$id/recurring/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +182,9 @@ export interface RootRouteChildren {
   GroupIdSettleRoute: typeof GroupIdSettleRoute
   GroupIdIndexRoute: typeof GroupIdIndexRoute
   GroupIdExpenseExpenseIdRoute: typeof GroupIdExpenseExpenseIdRoute
+  GroupIdRecurringRecurringIdRoute: typeof GroupIdRecurringRecurringIdRoute
+  GroupIdRecurringAddRoute: typeof GroupIdRecurringAddRoute
+  GroupIdRecurringIndexRoute: typeof GroupIdRecurringIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +252,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupIdExpenseExpenseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/group/$id/recurring/': {
+      id: '/group/$id/recurring/'
+      path: '/group/$id/recurring'
+      fullPath: '/group/$id/recurring/'
+      preLoaderRoute: typeof GroupIdRecurringIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group/$id/recurring/$recurringId': {
+      id: '/group/$id/recurring/$recurringId'
+      path: '/group/$id/recurring/$recurringId'
+      fullPath: '/group/$id/recurring/$recurringId'
+      preLoaderRoute: typeof GroupIdRecurringRecurringIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group/$id/recurring/add': {
+      id: '/group/$id/recurring/add'
+      path: '/group/$id/recurring/add'
+      fullPath: '/group/$id/recurring/add'
+      preLoaderRoute: typeof GroupIdRecurringAddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,6 +286,9 @@ const rootRouteChildren: RootRouteChildren = {
   GroupIdSettleRoute: GroupIdSettleRoute,
   GroupIdIndexRoute: GroupIdIndexRoute,
   GroupIdExpenseExpenseIdRoute: GroupIdExpenseExpenseIdRoute,
+  GroupIdRecurringRecurringIdRoute: GroupIdRecurringRecurringIdRoute,
+  GroupIdRecurringAddRoute: GroupIdRecurringAddRoute,
+  GroupIdRecurringIndexRoute: GroupIdRecurringIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

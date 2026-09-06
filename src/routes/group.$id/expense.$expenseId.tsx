@@ -15,8 +15,8 @@ import { useAppForm } from "@/hooks/useAppForm";
 import { expenseFormDefaults } from "@/lib/expense-form";
 import { pb } from "@/lib/pocketbase";
 import { requireAuth } from "@/lib/requireAuth";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, Trash2 } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Check, Repeat, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/group/$id/expense/$expenseId")({
@@ -140,6 +140,23 @@ function EditExpensePage() {
           <Trash2 size={16} />
         </button>
       </div>
+
+      {expense.recurring && (
+        <p className="flex items-center gap-1.5 pb-4 text-sm text-muted-foreground">
+          <Repeat size={14} className="shrink-0" />
+          <span>
+            Added automatically by a{" "}
+            <Link
+              to="/group/$id/recurring/$recurringId"
+              params={{ id, recurringId: expense.recurring }}
+              className="underline underline-offset-4"
+            >
+              recurring expense
+            </Link>
+            .
+          </span>
+        </p>
+      )}
 
       <form
         onSubmit={async (e) => {

@@ -39,7 +39,9 @@ The backend is a custom PocketBase binary defined at the repo root (Go module `o
 
 Business logic stays in JS hooks in `pb_hooks/` (e.g. `notifications.pb.js` creates the notification records; Go is only the transport). After adding a Go dependency, run `go mod tidy`.
 
-Collections: `groups`, `users`, `people`, `expenses`, `splits`, `invites`, `settlements`, `currencies`, `rates`, `notifications`, `push_subscriptions`. Relations are fetched via PocketBase's `expand` parameter. Default dev URL: `http://localhost:8090` (set via `VITE_POCKETBASE_URL`).
+Recurring expenses: `recurring_expenses` records are templates (amount, payer, JSON `splits`, `frequency` × `interval`, `nextDate`, optional `endDate`, `active`). `pb_hooks/recurringExpenses.pb.js` runs an hourly cron (logic in `pb_hooks/recurring.js`) that turns due templates into normal `expenses` + `splits` rows (tagged via the expense's `recurring` relation), notifies members, and advances `nextDate`. `POST /api/recurring/run` (superuser) triggers it manually.
+
+Collections: `groups`, `users`, `people`, `expenses`, `splits`, `invites`, `settlements`, `currencies`, `rates`, `notifications`, `push_subscriptions`, `recurring_expenses`. Relations are fetched via PocketBase's `expand` parameter. Default dev URL: `http://localhost:8090` (set via `VITE_POCKETBASE_URL`).
 
 Production runs everything as one container (see `Dockerfile`): the Go binary serves the API and the static frontend.
 

@@ -108,3 +108,26 @@ export const useDisablePush = () => {
     },
   });
 };
+
+/** One delivery attempt from `POST /api/push/test`, as reported by the push service. */
+export type PushTestResult = {
+  subscription: string;
+  endpoint: string;
+  userAgent: string;
+  status?: number;
+  error?: string;
+  /** The push service said the subscription is gone and the server deleted it. */
+  pruned?: boolean;
+};
+
+/** Send a test push to every device registered for the current user and report per-device results. */
+export const useSendTestPush = () => {
+  return useMutation({
+    mutationFn: async () => {
+      const { results } = (await pb.send("/api/push/test", { method: "POST" })) as {
+        results: PushTestResult[];
+      };
+      return results;
+    },
+  });
+};

@@ -13,6 +13,8 @@ import {
   useDisablePush,
   useEnablePush,
   usePushSubscription,
+  useSendTestPush,
+  type PushTestResult,
 } from "@/hooks/usePush";
 import { getAvatarUrl } from "@/lib/pocketbase";
 import { requireAuth } from "@/lib/requireAuth";
@@ -30,10 +32,92 @@ function formatProvider(provider: string) {
   return provider.charAt(0).toUpperCase() + provider.slice(1);
 }
 
+const browserNames: [RegExp, string][] = [
+  [/Edg\//, "Edge"],
+  [/Firefox\//, "Firefox"],
+  [/Chrome\//, "Chrome"],
+  [/Safari\//, "Safari"],
+];
+const systemNames: [RegExp, string][] = [
+  [/iPhone|iPad/, "iOS"],
+  [/Android/, "Android"],
+  [/Mac OS/, "macOS"],
+  [/Windows/, "Windows"],
+  [/Linux/, "Linux"],
+];
+const firstMatch = (names: [RegExp, string][], userAgent: string) =>
+  names.find(([pattern]) => pattern.test(userAgent))?.[1];
+
+/** Short human label for a registered device, e.g. "Firefox on Linux". */
+function describeDevice(userAgent: string) {
+  const browser = firstMatch(browserNames, userAgent) ?? "Browser";
+  const os = firstMatch(systemNames, userAgent);
+  return os ? `${browser} on ${os}` : browser;
+}
+
+const isDelivered = (result: PushTestResult) =>
+  !result.pruned && !result.error && !!result.status && result.status < 300;
+
+function describeResult(result: PushTestResult) {
+  if (result.pruned) return "Expired, removed";
+  if (result.error) return `Failed: ${result.error}`;
+  if (isDelivered(result)) return "Sent";
+  return `Rejected (HTTP ${result.status})`;
+}
+
+function TestPushResults({ results, endpoint }: { results: PushTestResult[]; endpoint: string }) {
+  const thisDevice = results.find((result) => result.endpoint === endpoint);
+
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      {results.length === 0 ? (
+        <p className="text-destructive">
+          No devices are registered for your account on the server.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-1">
+          {results.map((result) => (
+            <li key={result.subscription} className="flex justify-between gap-3">
+              <span>
+                {result.endpoint === endpoint ? "This device" : describeDevice(result.userAgent)}
+              </span>
+              <span
+                className={
+                  isDelivered(result)
+                    ? "text-right text-muted-foreground"
+                    : "text-right text-destructive"
+                }
+              >
+                {describeResult(result)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!thisDevice ? (
+        <p className="text-destructive">
+          This device's subscription isn't registered on the server. Disable and re-enable
+          notifications to fix it.
+        </p>
+      ) : isDelivered(thisDevice) ? (
+        <p className="text-muted-foreground">
+          The push service accepted the message. If nothing appeared, check the browser's and
+          system's notification settings for this site.
+        </p>
+      ) : thisDevice.pruned ? (
+        <p className="text-destructive">
+          The push service no longer knows this device. Disable and re-enable notifications.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function NotificationsCard() {
   const { data: subscription, isLoading } = usePushSubscription();
   const enablePush = useEnablePush();
   const disablePush = useDisablePush();
+  const testPush = useSendTestPush();
 
   const supported = isPushSupported();
   const enabled = !!subscription;
@@ -69,6 +153,23 @@ function NotificationsCard() {
         )}
         {enablePush.isError && (
           <p className="text-sm text-destructive">{enablePush.error.message}</p>
+        )}
+        {subscription && (
+          <>
+            <Button
+              variant="outline"
+              disabled={isPending || testPush.isPending}
+              onClick={() => testPush.mutate()}
+            >
+              {testPush.isPending ? "Sending..." : "Send test notification"}
+            </Button>
+            {testPush.isError && (
+              <p className="text-sm text-destructive">{testPush.error.message}</p>
+            )}
+            {testPush.data && (
+              <TestPushResults results={testPush.data} endpoint={subscription.endpoint} />
+            )}
+          </>
         )}
       </CardContent>
     </Card>

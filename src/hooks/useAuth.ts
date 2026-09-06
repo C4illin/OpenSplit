@@ -71,7 +71,7 @@ export async function finalizeOAuthRedirect(): Promise<OAuthResult | null> {
   const raw = sessionStorage.getItem(OAUTH_PENDING_KEY);
   sessionStorage.removeItem(OAUTH_PENDING_KEY);
 
-  // Always strip the OAuth params from the URL, even on failure.
+  // Always strip the OAuth parameters from the URL, even on failure.
   const cleanUrl = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete("code");

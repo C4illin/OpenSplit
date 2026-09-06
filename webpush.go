@@ -102,7 +102,7 @@ func vapidSubject() string {
 	return "mailto:admin@example.com"
 }
 
-// registerWebPush delivers every created `notifications` record to all of the
+// registerWebPush delivers every created `notifications` record to all the
 // recipient's registered devices. Records are created by pb_hooks (see
 // pb_hooks/notifications.pb.js) — this is only the transport.
 func registerWebPush(app *pocketbase.PocketBase) {
@@ -115,7 +115,7 @@ func registerWebPush(app *pocketbase.PocketBase) {
 		}
 		keys = k
 
-		// public key is needed by the client to subscribe; it is not a secret
+		// Public key is needed by the client to subscribe; it is not a secret
 		se.Router.GET("/api/vapid-public-key", func(e *core.RequestEvent) error {
 			return e.JSON(http.StatusOK, map[string]string{"publicKey": keys.PublicKey})
 		})
@@ -186,7 +186,7 @@ func sendPush(app core.App, keys *vapidKeys, subscription *core.Record, payload 
 	defer resp.Body.Close()
 
 	switch {
-	// the push service says this subscription no longer exists — drop it
+	// The push service says this subscription no longer exists — drop it
 	case resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusGone:
 		if err := app.Delete(subscription); err != nil {
 			app.Logger().Error("webpush: failed to prune dead subscription",

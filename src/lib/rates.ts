@@ -3,7 +3,7 @@ import type { RatesResponse } from "@/types/pocketbase-types.gen";
 
 // A daily snapshot of ECB euro reference rates, keyed by lowercase currency id
 // (matching the `currencies` record ids). Each value is units-per-EUR, e.g.
-// { eur: 1, usd: 1.08, sek: 11.2 }. EUR is always present with value 1.
+// `{ eur: 1, usd: 1.08, sek: 11.2 }`. EUR is always present with value 1.
 export type RatesMap = Record<string, number>;
 
 export type DatedRates = { date: string; rates: RatesMap };
@@ -15,8 +15,7 @@ function roundTo(amount: number, decimals: number): number {
 
 /**
  * Pick the newest rate snapshot on or before `date` (ISO yyyy-mm-dd). ECB does
- * not publish on weekends/holidays, so the matching row is often a day or more
- * earlier than the expense date. Returns null if no snapshot qualifies.
+ * not publish on weekends/holidays, so the matching row is often a day or earlier than the expense date. Returns null if no snapshot qualifies.
  */
 export function ratesForDate(rows: RatesResponse[], date: string): DatedRates | null {
   const day = date.slice(0, 10);

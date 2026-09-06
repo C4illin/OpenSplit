@@ -43,3 +43,15 @@ export function convert(amount: number, from: string, to: string, map: RatesMap)
   if (!rateFrom || !rateTo) return null;
   return roundTo((amount * rateTo) / rateFrom, currencyDecimals(to));
 }
+
+const DAY_MS = 1000 * 60 * 60 * 24;
+export const STALE_RATE_DAYS = 3;
+
+export function rateAgeDays(snapshotDate: string, date: string): number {
+  const utcDay = (iso: string) => Date.parse(iso.slice(0, 10));
+  return Math.round((utcDay(date) - utcDay(snapshotDate)) / DAY_MS);
+}
+
+export function isRateStale(snapshotDate: string, date: string = new Date().toISOString()) {
+  return rateAgeDays(snapshotDate, date) >= STALE_RATE_DAYS;
+}

@@ -2,12 +2,13 @@ import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { SplitEditor } from "@/components/SplitEditor";
 import { CategoryPicker } from "@/components/CategoryPicker";
 import { expenseFormDefaults } from "@/lib/expense-form";
-import { formatAmount } from "@/lib/format";
+import { formatAmount, formatDay } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Wrapper } from "@/components/Wrapper";
-import { useConverter, useCreateExpense, useGroup } from "@/hooks/useApi";
+import { useConverter, useCreateExpense, useGroup, useRateDate } from "@/hooks/useApi";
 import { useAppForm, withForm } from "@/hooks/useAppForm";
 import { pb } from "@/lib/pocketbase";
+import { isRateStale } from "@/lib/rates";
 import { requireAuth } from "@/lib/requireAuth";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -31,6 +32,7 @@ function AddExpensePage() {
   const members = group?.expand?.members ?? [];
   const createExpense = useCreateExpense();
   const convertToBase = useConverter();
+  const rateDate = useRateDate();
   const base = group?.currency || "sek";
   const currentUserId = pb.authStore.record?.id ?? "";
   const [step, setStep] = useState<Step>("amount");
@@ -120,7 +122,13 @@ function AddExpensePage() {
         {/* Step content — centered vertically */}
         <div className="flex flex-1 flex-col items-center justify-center">
           {step === "amount" && (
-            <AmountStep form={form} base={base} groupId={id} convertToBase={convertToBase} />
+            <AmountStep
+              form={form}
+              base={base}
+              groupId={id}
+              convertToBase={convertToBase}
+              rateDate={rateDate}
+            />
           )}
           {step === "title" && <TitleStep form={form} groupId={id} />}
           {step === "split" && (
@@ -193,8 +201,9 @@ const AmountStep = withForm({
     base: "sek",
     groupId: "",
     convertToBase: (() => null) as Converter,
+    rateDate: null as string | null,
   },
-  render: ({ form, base, groupId, convertToBase }) => (
+  render: ({ form, base, groupId, convertToBase, rateDate }) => (
     <div className="flex w-full flex-col items-center gap-6">
       <p className="text-sm text-muted-foreground">How much was it?</p>
 
@@ -257,13 +266,22 @@ const AmountStep = withForm({
             return <p className="text-sm text-muted-foreground">{formatAmount(parsed, base)}</p>;
           }
           const converted = convertToBase(parsed, currency, base);
+          // The preview locks in today's snapshot; when ECB hasn't published
+          // for a few days, say which day's rate is actually being used.
+          const staleRateDate =
+            converted != null && rateDate != null && isRateStale(rateDate) ? rateDate : null;
           return (
-            <p className="text-sm text-muted-foreground">
-              {formatAmount(parsed, currency)}
-              {converted != null
-                ? ` ≈ ${formatAmount(converted, base)}`
-                : " · no rate available yet"}
-            </p>
+            <div className="flex flex-col items-center gap-1 text-sm text-muted-foreground">
+              <p>
+                {formatAmount(parsed, currency)}
+                {converted != null
+                  ? ` ≈ ${formatAmount(converted, base)}`
+                  : " · no rate available yet"}
+              </p>
+              {staleRateDate && (
+                <p className="text-xs">Exchange rate from {formatDay(staleRateDate)}</p>
+              )}
+            </div>
           );
         }}
       </form.Subscribe>

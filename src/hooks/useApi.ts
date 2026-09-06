@@ -54,6 +54,17 @@ export const useConverter = () => {
   };
 };
 
+/**
+ * Publish date (yyyy-mm-dd) of the ECB snapshot `useConverter` would apply on
+ * `dateISO` (defaults to now), or null while rates are loading or none qualify.
+ * Lets the UI tell the user when the rate they're seeing is days old.
+ */
+export const useRateDate = (dateISO?: string): string | null => {
+  const { data: rates } = useRates();
+  if (!rates) return null;
+  return ratesForDate(rates, dateISO ?? new Date().toISOString())?.date ?? null;
+};
+
 type GroupsExpand = {
   members?: UsersResponse[];
 };

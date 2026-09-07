@@ -7,4 +7,5 @@ export const expenseFormDefaults = {
   splits: [] as { user: string; percentage: number }[],
   excluded: [] as string[],
   category: "",
+  project: "",
 };

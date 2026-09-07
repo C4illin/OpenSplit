@@ -1,6 +1,7 @@
 import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { SplitEditor } from "@/components/SplitEditor";
 import { CategoryPicker } from "@/components/CategoryPicker";
+import { ProjectPicker } from "@/components/ProjectPicker";
 import { expenseFormDefaults } from "@/lib/expense-form";
 import { formatAmount, formatDay } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ function AddExpensePage() {
         paidBy: value.paidBy,
         splits,
         category: value.category,
+        project: value.project,
       });
 
       await navigate({ to: "/group/$id", params: { id } });
@@ -328,6 +330,18 @@ const TitleStep = withForm({
         {(field) => (
           <div className="flex justify-center">
             <CategoryPicker
+              groupId={groupId}
+              value={field.state.value}
+              onChange={field.handleChange}
+            />
+          </div>
+        )}
+      </form.Field>
+
+      <form.Field name="project">
+        {(field) => (
+          <div className="flex justify-center">
+            <ProjectPicker
               groupId={groupId}
               value={field.state.value}
               onChange={field.handleChange}

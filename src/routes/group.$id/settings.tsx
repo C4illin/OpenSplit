@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Wrapper } from "@/components/Wrapper";
 import {
   useCategories,
+  useProjects,
   useCurrencies,
   useDeleteGroup,
   useGroup,
@@ -44,6 +45,7 @@ function GroupSettingsPage() {
   const deleting = deleteGroup.isPending || deleteGroup.isSuccess;
   const { data: group, isLoading } = useGroup(deleting ? "" : id);
   const { data: categories } = useCategories(id);
+  const { data: projects } = useProjects(id);
   const { data: currencies } = useCurrencies();
 
   const currency = currencies?.find((c) => c.id === group?.currency);
@@ -131,6 +133,24 @@ function GroupSettingsPage() {
           ) : (
             <p className="text-sm text-muted-foreground">
               No categories yet. Add them while creating or editing an expense.
+            </p>
+          )}
+        </div>
+
+        {/* Projects */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">Projects</p>
+          {projects?.length ? (
+            <div className="flex flex-wrap gap-2">
+              {projects.map((project) => (
+                <Badge key={project.id} variant="outline">
+                  {project.name}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No projects yet. Add them while creating or editing an expense.
             </p>
           )}
         </div>

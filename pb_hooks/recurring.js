@@ -128,6 +128,7 @@ function createExpense(app, template, group, splits, dueDate, baseAmount) {
   expense.set("baseAmount", baseAmount);
   expense.set("paidBy", template.get("paidBy"));
   expense.set("category", template.get("category"));
+  expense.set("project", template.get("project"));
   expense.set("recurring", template.id);
   // Noon UTC on the due day, so the date reads as that day in every timezone
   // the app is realistically used from.

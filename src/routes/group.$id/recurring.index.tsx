@@ -74,6 +74,9 @@ function RecurringExpensesPage() {
                             {item.expand?.category && (
                               <Badge variant="secondary">{item.expand.category.name}</Badge>
                             )}
+                            {item.expand?.project && (
+                              <Badge variant="outline">{item.expand.project.name}</Badge>
+                            )}
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1">

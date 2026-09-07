@@ -228,6 +228,9 @@ function RouteComponent() {
                               {expense.expand?.category && (
                                 <Badge variant="secondary">{expense.expand.category.name}</Badge>
                               )}
+                              {expense.expand?.project && (
+                                <Badge variant="default">{expense.expand.project.name}</Badge>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">

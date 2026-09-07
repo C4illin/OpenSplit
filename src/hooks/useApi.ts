@@ -7,6 +7,7 @@ import type {
   ExternalauthsResponse,
   GroupsResponse,
   InvitesResponse,
+  ProjectsResponse,
   RatesResponse,
   RecurringExpensesFrequencyOptions,
   RecurringExpensesResponse,
@@ -175,11 +176,39 @@ export const useCreateCategory = () => {
   });
 };
 
+// Projects
+
+export const useProjects = (groupId: string) => {
+  return useQuery({
+    queryKey: ["projects", groupId],
+    queryFn: async () => {
+      return await pb.collection("projects").getFullList<ProjectsResponse>({
+        filter: `group = "${groupId}"`,
+        sort: "name",
+      });
+    },
+    enabled: !!groupId,
+  });
+};
+
+export const useCreateProject = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { group: string; name: string }) => {
+      return await pb.collection("projects").create<ProjectsResponse>(data);
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ["projects", variables.group] });
+    },
+  });
+};
+
 // Expenses
 
 type ExpensesExpand = {
   paidBy?: UsersResponse;
   category?: CategoriesResponse;
+  project?: ProjectsResponse;
 };
 
 export const useExpenses = (groupId: string) => {
@@ -189,7 +218,7 @@ export const useExpenses = (groupId: string) => {
       return await pb.collection("expenses").getFullList<ExpensesResponse<ExpensesExpand>>({
         filter: `group = "${groupId}"`,
         sort: "-date",
-        expand: "paidBy,category",
+        expand: "paidBy,category,project",
       });
     },
     enabled: !!groupId,
@@ -218,6 +247,7 @@ type CreateExpenseData = {
   paidBy: string;
   splits: { user: string; percentage: number }[];
   category: string;
+  project?: string;
 };
 
 export const useCreateExpense = () => {
@@ -233,6 +263,7 @@ export const useCreateExpense = () => {
         group: data.group,
         paidBy: data.paidBy,
         category: data.category,
+        project: data.project,
       });
 
       await Promise.all(
@@ -286,6 +317,7 @@ type UpdateExpenseData = {
   splits: { user: string; percentage: number }[];
   existingSplitIds: string[];
   category: string;
+  project?: string;
 };
 
 export const useUpdateExpense = () => {
@@ -300,6 +332,7 @@ export const useUpdateExpense = () => {
         date: data.date,
         paidBy: data.paidBy,
         category: data.category,
+        project: data.project,
       });
 
       // Delete old splits
@@ -360,6 +393,7 @@ export const useDeleteExpense = () => {
 type RecurringExpensesExpand = {
   paidBy?: UsersResponse;
   category?: CategoriesResponse;
+  project?: ProjectsResponse;
   recurring_splits_via_recurring?: RecurringSplitsResponse[];
 };
 
@@ -372,7 +406,7 @@ export const useRecurringExpenses = (groupId: string) => {
       return await pb.collection("recurring_expenses").getFullList<RecurringExpense>({
         filter: `group = "${groupId}"`,
         sort: "-active,nextDate",
-        expand: "paidBy,category",
+        expand: "paidBy,category,project",
       });
     },
     enabled: !!groupId,
@@ -397,6 +431,7 @@ type RecurringExpenseFields = {
   currency: string;
   paidBy: string;
   category: string;
+  project?: string;
   frequency: RecurringExpensesFrequencyOptions;
   /** Repeat every N units of `frequency` (1 = every week/month/year). */
   interval: number;

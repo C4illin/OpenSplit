@@ -1,4 +1,5 @@
 import { CategoryPicker } from "@/components/CategoryPicker";
+import { ProjectPicker } from "@/components/ProjectPicker";
 import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { SplitEditor, type Member } from "@/components/SplitEditor";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export type RecurringExpenseValues = {
   currency: string;
   paidBy: string;
   category: string;
+  project: string;
   splits: RecurringSplit[];
   frequency: Frequency;
   /** Repeat every N units of `frequency`. */
@@ -96,6 +98,7 @@ export function RecurringExpenseForm({
       currency: initial?.currency || base,
       paidBy: initial?.paidBy || currentUserId,
       category: initial?.category ?? "",
+      project: initial?.project ?? "",
       splits: members.map((m) => {
         if (!initial) {
           return { user: m.id, percentage: members.length > 0 ? 100 / members.length : 0 };
@@ -117,6 +120,7 @@ export function RecurringExpenseForm({
         currency: value.currency,
         paidBy: value.paidBy,
         category: value.category,
+        project: value.project,
         splits: value.splits.filter((s) => s.percentage > 0),
         frequency: schedule.frequency,
         interval,
@@ -228,6 +232,20 @@ export function RecurringExpenseForm({
         <form.Field name="category">
           {(field) => (
             <CategoryPicker
+              groupId={groupId}
+              value={field.state.value}
+              onChange={field.handleChange}
+            />
+          )}
+        </form.Field>
+      </div>
+
+      {/* Project */}
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-muted-foreground">Project</p>
+        <form.Field name="project">
+          {(field) => (
+            <ProjectPicker
               groupId={groupId}
               value={field.state.value}
               onChange={field.handleChange}

@@ -17,6 +17,7 @@ export const Collections = {
 	Groups: "groups",
 	Invites: "invites",
 	Notifications: "notifications",
+	Projects: "projects",
 	PushSubscriptions: "push_subscriptions",
 	Rates: "rates",
 	RecurringExpenses: "recurring_expenses",
@@ -132,6 +133,7 @@ export type ExpensesRecord = {
 	group: RecordIdString
 	id: string
 	paidBy: RecordIdString
+	project?: RecordIdString
 	recurring?: RecordIdString
 	title: string
 	updated: IsoAutoDateString
@@ -162,6 +164,14 @@ export type NotificationsRecord = {
 	updated: IsoAutoDateString
 	url?: string
 	user: RecordIdString
+}
+
+export type ProjectsRecord = {
+	created: IsoAutoDateString
+	group: RecordIdString
+	id: string
+	name: string
+	updated: IsoAutoDateString
 }
 
 export type PushSubscriptionsRecord = {
@@ -203,6 +213,7 @@ export type RecurringExpensesRecord = {
 	interval?: number
 	nextDate: IsoDateString
 	paidBy: RecordIdString
+	project?: RecordIdString
 	startDate: IsoDateString
 	title: string
 	updated: IsoAutoDateString
@@ -264,6 +275,7 @@ export type ExpensesResponse<Texpand = unknown> = Required<ExpensesRecord> & Bas
 export type GroupsResponse<Texpand = unknown> = Required<GroupsRecord> & BaseSystemFields<Texpand>
 export type InvitesResponse<Texpand = unknown> = Required<InvitesRecord> & BaseSystemFields<Texpand>
 export type NotificationsResponse<Texpand = unknown> = Required<NotificationsRecord> & BaseSystemFields<Texpand>
+export type ProjectsResponse<Texpand = unknown> = Required<ProjectsRecord> & BaseSystemFields<Texpand>
 export type PushSubscriptionsResponse<Texpand = unknown> = Required<PushSubscriptionsRecord> & BaseSystemFields<Texpand>
 export type RatesResponse<Trates = unknown, Texpand = unknown> = Required<RatesRecord<Trates>> & BaseSystemFields<Texpand>
 export type RecurringExpensesResponse<Texpand = unknown> = Required<RecurringExpensesRecord> & BaseSystemFields<Texpand>
@@ -286,6 +298,7 @@ export type CollectionRecords = {
 	groups: GroupsRecord
 	invites: InvitesRecord
 	notifications: NotificationsRecord
+	projects: ProjectsRecord
 	push_subscriptions: PushSubscriptionsRecord
 	rates: RatesRecord
 	recurring_expenses: RecurringExpensesRecord
@@ -307,6 +320,7 @@ export type CollectionResponses = {
 	groups: GroupsResponse
 	invites: InvitesResponse
 	notifications: NotificationsResponse
+	projects: ProjectsResponse
 	push_subscriptions: PushSubscriptionsResponse
 	rates: RatesResponse
 	recurring_expenses: RecurringExpensesResponse

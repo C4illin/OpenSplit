@@ -2,6 +2,7 @@ import { CurrencyPicker } from "@/components/CurrencyPicker";
 import { LinkArrow } from "@/components/LinkArrow";
 import { SplitEditor } from "@/components/SplitEditor";
 import { CategoryPicker } from "@/components/CategoryPicker";
+import { ProjectPicker } from "@/components/ProjectPicker";
 import { Button } from "@/components/ui/button";
 import { Wrapper } from "@/components/Wrapper";
 import {
@@ -49,6 +50,7 @@ function EditExpensePage() {
       date: expense?.date ? expense.date.slice(0, 16) : "",
       paidBy: expense?.paidBy ?? currentUserId,
       category: expense?.category ?? "",
+      project: expense?.project ?? "",
       splits: members.map((m) => {
         const existing = existingSplits.find((s) => s.user === m.id);
         return {
@@ -98,6 +100,7 @@ function EditExpensePage() {
         splits: value.splits,
         existingSplitIds,
         category: value.category,
+        project: value.project,
       });
 
       await navigate({ to: "/group/$id", params: { id } });
@@ -286,6 +289,16 @@ function EditExpensePage() {
                 value={field.state.value}
                 onChange={field.handleChange}
               />
+            )}
+          </form.Field>
+        </div>
+
+        {/* Project */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">Project</p>
+          <form.Field name="project">
+            {(field) => (
+              <ProjectPicker groupId={id} value={field.state.value} onChange={field.handleChange} />
             )}
           </form.Field>
         </div>

@@ -188,10 +188,14 @@ export default defineConfig({
       },
       includeAssets: [
         "favicon.svg",
+        "favicon-light.svg",
         "favicon.ico",
+        "favicon-light.ico",
         "apple-touch-icon.png",
         "favicon-16x16.png",
         "favicon-32x32.png",
+        "favicon-light-16x16.png",
+        "favicon-light-32x32.png",
       ],
       manifest: {
         name: "OpenSplit",
@@ -204,16 +208,34 @@ export default defineConfig({
         scope: "/",
         icons: [
           {
+            src: "favicon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
+          },
+          {
             src: "android-chrome-192x192.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "any",
+          },
+          {
+            src: "android-chrome-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
           },
           {
             src: "android-chrome-512x512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "any",
+          },
+          {
+            src: "android-chrome-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
       },

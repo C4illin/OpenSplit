@@ -358,7 +358,15 @@ function RouteComponent() {
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
                     <FieldDescription>
-                      Allows friends to pay you via Revolut, Apple Pay, or card.
+                      Allows friends to pay you via Revolut, Apple Pay, or card.{" "}
+                      <a
+                        href="https://revolut.com/referral/?referral-code=emrikwv1g!SEP2-26-AR-H1&geo-redirect"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Sign up here
+                      </a>
+                      .
                     </FieldDescription>
                     {field.state.meta.errors.length > 0 && (
                       <p className="text-sm text-destructive">

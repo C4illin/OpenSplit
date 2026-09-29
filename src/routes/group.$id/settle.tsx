@@ -153,14 +153,15 @@ function RouteComponent() {
     (s) => s.from.id !== currentUserId && s.to.id !== currentUserId,
   );
 
-  const recordPaid = async (payload: Omit<PendingSettlement, "stashedAt">) => {
+  const recordPaid = (payload: Omit<PendingSettlement, "stashedAt">) => {
     const { label, ...data } = payload;
-    const rec = await createSettlement.mutateAsync(data);
-    setUndo({ id: rec.id, label });
+    createSettlement.mutate(data, {
+      onSuccess: (rec) => setUndo({ id: rec.id, label }),
+    });
   };
 
   const handleMarkPaid = (s: Settlement) => {
-    void recordPaid({
+    recordPaid({
       group: id,
       from: s.from.id,
       to: s.to.id,
@@ -216,7 +217,7 @@ function RouteComponent() {
       if (Date.now() - stashedAt > PENDING_MAX_AGE_MS) return;
       // The callback comes from the Swish app, not a verified server-side
       // confirmation, so recording is still optimistic — hence the undo prompt.
-      void recordPaid(pending);
+      recordPaid(pending);
     } catch {
       // Ignore malformed pending data.
     }

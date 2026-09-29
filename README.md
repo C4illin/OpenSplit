@@ -21,6 +21,7 @@ services:
       - 5050:5050
     environment:
       - TZ=Europe/Stockholm
+      - VAPID_SUBJECT=yourmail@example.org
     volumes:
       - ./data/opensplit:/pb/pb_data
 ```

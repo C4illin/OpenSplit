@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -99,9 +101,10 @@ func loadOrCreateVAPIDKeys(app *pocketbase.PocketBase) (*vapidKeys, error) {
 // the operator. Must be a mailto: or https: URL.
 func vapidSubject() string {
 	if subject := os.Getenv("VAPID_SUBJECT"); subject != "" {
-		return subject
+		return strings.TrimPrefix(subject, "mailto:")
 	}
-	return "mailto:admin@example.com"
+	log.Println("WARNING: VAPID_SUBJECT environment variable is not set. Push services may block your notifications in production!")
+	return "temporary@example.com"
 }
 
 // registerWebPush delivers every created `notifications` record to all the

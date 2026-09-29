@@ -3,5 +3,7 @@ services:
     build: .
     ports:
       - "5050:5050"
+    environment:
+      - VAPID_SUBJECT=opensplit@emrik.org
     volumes:
       - ./pb_data:/pb/pb_data

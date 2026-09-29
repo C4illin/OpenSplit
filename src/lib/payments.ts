@@ -15,6 +15,7 @@ export type PaymentContext = {
 export type PaymentMethod = {
   id: string;
   name: string;
+  buttonLabel?: string;
   isAvailable: (payee: UsersResponse, currency: string) => boolean;
   buildUrl: (ctx: PaymentContext) => string;
 };
@@ -99,6 +100,7 @@ export const swish: PaymentMethod = {
 export const revolut: PaymentMethod = {
   id: "revolut",
   name: "Revolut",
+  buttonLabel: "Pay with Revolut (Card / Apple Pay)",
   isAvailable: (payee) => !!payee.revolut && !!sanitizeRevolutTag(payee.revolut),
   buildUrl: buildRevolutUrl,
 };

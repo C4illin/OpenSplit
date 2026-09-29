@@ -2,7 +2,7 @@ import { Header } from "@/components/Header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field } from "@/components/ui/field";
+import { Field, FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wrapper } from "@/components/Wrapper";
@@ -321,6 +321,7 @@ function RouteComponent() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
+                    <FieldDescription>Swedish payment service.</FieldDescription>
                     {field.state.meta.errors.length > 0 && (
                       <p className="text-sm text-destructive">
                         {field.state.meta.errors.join(", ")}
@@ -356,6 +357,9 @@ function RouteComponent() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
+                    <FieldDescription>
+                      Allows friends to pay you via Revolut, Apple Pay, or card.
+                    </FieldDescription>
                     {field.state.meta.errors.length > 0 && (
                       <p className="text-sm text-destructive">
                         {field.state.meta.errors.join(", ")}

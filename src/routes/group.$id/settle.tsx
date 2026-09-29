@@ -103,7 +103,7 @@ function SettlementRow({
             ) : (
               methods.map((method) => (
                 <Button key={method.id} size="sm" onClick={() => onPay(settlement, method)}>
-                  Pay with {method.name}
+                  {method.buttonLabel ?? `Pay with ${method.name}`}
                 </Button>
               ))
             )}

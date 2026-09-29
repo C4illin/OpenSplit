@@ -2,7 +2,7 @@ import { Header } from "@/components/Header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field } from "@/components/ui/field";
+import { Field, FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wrapper } from "@/components/Wrapper";
@@ -16,6 +16,7 @@ import {
   useSendTestPush,
   type PushTestResult,
 } from "@/hooks/usePush";
+import { sanitizeRevolutTag } from "@/lib/payments";
 import { getAvatarUrl } from "@/lib/pocketbase";
 import { requireAuth } from "@/lib/requireAuth";
 import { useForm } from "@tanstack/react-form";
@@ -188,11 +189,13 @@ function RouteComponent() {
     defaultValues: {
       name: user?.name ?? "",
       swish: user?.swish ?? "",
+      revolut: user?.revolut ?? "",
     },
     onSubmit: async ({ value }) => {
       const sanitized = {
         name: value.name,
         swish: value.swish.replace(/[\s-]/g, ""),
+        revolut: sanitizeRevolutTag(value.revolut),
       };
       await updateProfile.mutateAsync(sanitized);
       form.reset(sanitized);
@@ -205,6 +208,7 @@ function RouteComponent() {
       form.reset({
         name: user.name ?? "",
         swish: user.swish ?? "",
+        revolut: user.revolut ?? "",
       });
     }
   }, [user, form]);
@@ -317,6 +321,53 @@ function RouteComponent() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
+                    <FieldDescription>Swedish payment service.</FieldDescription>
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="text-sm text-destructive">
+                        {field.state.meta.errors.join(", ")}
+                      </p>
+                    )}
+                  </Field>
+                )}
+              </form.Field>
+
+              <form.Field
+                name="revolut"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (!value) return undefined;
+                    const cleaned = sanitizeRevolutTag(value);
+                    if (!cleaned) return undefined;
+                    if (!/^[a-zA-Z0-9_.-]{3,32}$/.test(cleaned)) {
+                      return "Enter a valid Revolut username";
+                    }
+                    return undefined;
+                  },
+                }}
+              >
+                {(field) => (
+                  <Field>
+                    <Label htmlFor={field.name}>Revolut username</Label>
+                    <Input
+                      id={field.name}
+                      type="text"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                    <FieldDescription>
+                      Allows friends to pay you via Revolut, Apple Pay, or card.{" "}
+                      <a
+                        href="https://revolut.com/referral/?referral-code=emrikwv1g!SEP2-26-AR-H1&geo-redirect"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Sign up here
+                      </a>
+                      .
+                    </FieldDescription>
                     {field.state.meta.errors.length > 0 && (
                       <p className="text-sm text-destructive">
                         {field.state.meta.errors.join(", ")}

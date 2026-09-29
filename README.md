@@ -1,6 +1,13 @@
 # OpenSplit
 
-A self-hosted web application for splitting bills and expenses with friends. Only supports the swedish payment service Swish for now, but more can be added easily. Only Google oauth is supported for authentication, but only UI is needed for more providers, as PocketBase supports many more providers out of the box. Currencies are fetched from European Central Bank (ECB) and therefore supports all currencies that are supported by ECB.
+A self-hosted web application for splitting bills and expenses with friends. Only Google oauth is supported for authentication, but only UI is needed for more providers, as PocketBase supports many more providers out of the box. Currencies are fetched from European Central Bank (ECB) and therefore supports all currencies that are supported by ECB.
+
+### Payment methods:
+
+- Swish (Sweden only)
+- Revolut
+  - Which supports payments with card and apple pay.
+- More can be added, submit a PR or issue if you want to add more payment methods.
 
 ## Install
 

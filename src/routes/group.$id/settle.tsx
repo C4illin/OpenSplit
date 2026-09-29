@@ -103,7 +103,7 @@ function SettlementRow({
             ) : (
               methods.map((method) => (
                 <Button key={method.id} size="sm" onClick={() => onPay(settlement, method)}>
-                  Pay with {method.name}
+                  {method.buttonLabel ?? `Pay with ${method.name}`}
                 </Button>
               ))
             )}
@@ -180,7 +180,7 @@ function RouteComponent() {
       to: s.to.id,
       amount: s.amount,
       currency,
-      label: `Paid ${s.to.name || s.to.username} via Swish`,
+      label: `Paid ${s.to.name || s.to.username} via ${method.name}`,
       stashedAt: Date.now(),
     };
     localStorage.setItem(PENDING_KEY, JSON.stringify(pending));

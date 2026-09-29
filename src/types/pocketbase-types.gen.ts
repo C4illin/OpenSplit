@@ -257,6 +257,7 @@ export type UsersRecord = {
 	id: string
 	name?: string
 	password: string
+	revolut?: string
 	swish?: string
 	tokenKey: string
 	updated: IsoAutoDateString

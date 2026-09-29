@@ -1,3 +1,4 @@
+import { currencyDecimals } from "@/lib/currencies";
 import type { UsersResponse } from "@/types/pocketbase-types.gen";
 
 export type PaymentContext = {
@@ -63,6 +64,31 @@ function buildSwishWebUrl({ payee, amount, message }: PaymentContext) {
   return `https://app.swish.nu/1/p/sw/?${params.join("&")}`;
 }
 
+export function sanitizeRevolutTag(tag: string) {
+  let cleaned = tag.trim();
+  cleaned = cleaned.replace(/^https?:\/\/(?:www\.)?revolut\.me\//i, "");
+  cleaned = cleaned.replace(/^revolut\.me\//i, "");
+  cleaned = cleaned.replace(/^[@/]+/, "");
+  return cleaned.split(/[?#/]/)[0].trim();
+}
+
+function sanitizeRevolutNote(message: string) {
+  return message.replace(/\s+/g, " ").trim().slice(0, 64);
+}
+
+function buildRevolutUrl({ payee, amount, currency, message }: PaymentContext) {
+  const tag = sanitizeRevolutTag(payee.revolut ?? "");
+  const decimals = currencyDecimals(currency.toLowerCase());
+  const minorAmount = Math.max(0, Math.round(amount * Math.pow(10, decimals)));
+  const note = sanitizeRevolutNote(message);
+  const params = [
+    `currency=${encodeURIComponent(currency.toUpperCase())}`,
+    `amount=${minorAmount}`,
+    `note=${encodeURIComponent(note)}`,
+  ];
+  return `https://revolut.me/${encodeURIComponent(tag)}?${params.join("&")}`;
+}
+
 export const swish: PaymentMethod = {
   id: "swish",
   name: "Swish",
@@ -70,7 +96,14 @@ export const swish: PaymentMethod = {
   buildUrl: (ctx) => (ctx.callbackUrl ? buildSwishAppSwitchUrl(ctx) : buildSwishWebUrl(ctx)),
 };
 
-export const paymentMethods: PaymentMethod[] = [swish];
+export const revolut: PaymentMethod = {
+  id: "revolut",
+  name: "Revolut",
+  isAvailable: (payee) => !!payee.revolut && !!sanitizeRevolutTag(payee.revolut),
+  buildUrl: buildRevolutUrl,
+};
+
+export const paymentMethods: PaymentMethod[] = [swish, revolut];
 
 export function availableMethods(payee: UsersResponse, currency: string) {
   return paymentMethods.filter((m) => m.isAvailable(payee, currency));

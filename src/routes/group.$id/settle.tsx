@@ -180,7 +180,7 @@ function RouteComponent() {
       to: s.to.id,
       amount: s.amount,
       currency,
-      label: `Paid ${s.to.name || s.to.username} via Swish`,
+      label: `Paid ${s.to.name || s.to.username} via ${method.name}`,
       stashedAt: Date.now(),
     };
     localStorage.setItem(PENDING_KEY, JSON.stringify(pending));

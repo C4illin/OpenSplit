@@ -255,6 +255,7 @@ export type UsersRecord = {
 	email: string
 	emailVisibility?: boolean
 	id: string
+	mobilepay?: string
 	name?: string
 	password: string
 	revolut?: string
@@ -262,6 +263,7 @@ export type UsersRecord = {
 	tokenKey: string
 	updated: IsoAutoDateString
 	verified?: boolean
+	vipps?: string
 }
 
 // Response types include system fields and match responses from the PocketBase API

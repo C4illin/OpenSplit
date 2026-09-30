@@ -4,10 +4,12 @@ A self-hosted web application for splitting bills and expenses with friends. Onl
 
 ### Payment methods:
 
-- Swish (Sweden only)
 - Revolut
   - Which supports payments with card and apple pay.
-- More can be added, submit a PR or issue if you want to add more payment methods.
+- Swish (🇸🇪)
+- Vipps/Mobilepay (🇳🇴🇸🇪🇩🇰🇫🇮)
+
+More can be added, submit a PR or issue!
 
 ## Install
 

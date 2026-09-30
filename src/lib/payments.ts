@@ -16,7 +16,7 @@ export type PaymentMethod = {
   id: string;
   name: string;
   buttonLabel?: string;
-  isAvailable: (payee: UsersResponse, currency: string) => boolean;
+  isAvailable: (payee: UsersResponse, currency: string, payer: UsersResponse | null) => boolean;
   buildUrl: (ctx: PaymentContext) => string;
 };
 
@@ -105,8 +105,50 @@ export const revolut: PaymentMethod = {
   buildUrl: buildRevolutUrl,
 };
 
-export const paymentMethods: PaymentMethod[] = [swish, revolut];
+export const vipps: PaymentMethod = {
+  id: "vipps",
+  name: "Vipps",
+  isAvailable: (payee, currency, payer) => {
+    if (!payee.vipps && !payee.mobilepay) return false;
+    if (!["NOK", "DKK", "EUR"].includes(currency.toUpperCase())) return false;
+    if (payer) {
+      if (payer.vipps) return true;
+      if (payer.mobilepay) return false;
+    }
+    return !!payee.vipps;
+  },
+  buildUrl: ({ payee, amount }) => {
+    // Basic Vipps QR string format. Doesn't support pre-filling amount for P2P reliably.
+    const phone = payee.vipps || payee.mobilepay;
+    return `https://qr.vipps.no/28/2/01/031/${phone}?a=${amount}`;
+  },
+};
 
-export function availableMethods(payee: UsersResponse, currency: string) {
-  return paymentMethods.filter((m) => m.isAvailable(payee, currency));
+export const mobilepay: PaymentMethod = {
+  id: "mobilepay",
+  name: "MobilePay",
+  isAvailable: (payee, currency, payer) => {
+    if (!payee.vipps && !payee.mobilepay) return false;
+    if (!["NOK", "DKK", "EUR"].includes(currency.toUpperCase())) return false;
+    if (payer) {
+      if (payer.mobilepay) return true;
+      if (payer.vipps) return false;
+    }
+    return !!payee.mobilepay;
+  },
+  buildUrl: ({ payee, amount }) => {
+    // Unofficial deep link, best effort for older app versions or specific setups.
+    const phone = payee.mobilepay || payee.vipps;
+    return `mobilepay://send?phone=${phone}&amount=${amount}`;
+  },
+};
+
+export const paymentMethods: PaymentMethod[] = [swish, revolut, vipps, mobilepay];
+
+export function availableMethods(
+  payee: UsersResponse,
+  currency: string,
+  payer: UsersResponse | null = null,
+) {
+  return paymentMethods.filter((m) => m.isAvailable(payee, currency, payer));
 }

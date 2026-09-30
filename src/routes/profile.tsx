@@ -190,12 +190,16 @@ function RouteComponent() {
       name: user?.name ?? "",
       swish: user?.swish ?? "",
       revolut: user?.revolut ?? "",
+      vipps: user?.vipps ?? "",
+      mobilepay: user?.mobilepay ?? "",
     },
     onSubmit: async ({ value }) => {
       const sanitized = {
         name: value.name,
         swish: value.swish.replace(/[\s-]/g, ""),
         revolut: sanitizeRevolutTag(value.revolut),
+        vipps: value.vipps.replace(/[\s-]/g, ""),
+        mobilepay: value.mobilepay.replace(/[\s-]/g, ""),
       };
       await updateProfile.mutateAsync(sanitized);
       form.reset(sanitized);
@@ -209,6 +213,8 @@ function RouteComponent() {
         name: user.name ?? "",
         swish: user.swish ?? "",
         revolut: user.revolut ?? "",
+        vipps: user.vipps ?? "",
+        mobilepay: user.mobilepay ?? "",
       });
     }
   }, [user, form]);
@@ -368,6 +374,76 @@ function RouteComponent() {
                       </a>
                       .
                     </FieldDescription>
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="text-sm text-destructive">
+                        {field.state.meta.errors.join(", ")}
+                      </p>
+                    )}
+                  </Field>
+                )}
+              </form.Field>
+
+              <form.Field
+                name="vipps"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (!value) return undefined;
+                    const cleaned = value.replace(/[\s-]/g, "");
+                    if (!/^\+?\d{8,16}$/.test(cleaned)) {
+                      return "Enter a valid Vipps number";
+                    }
+                    return undefined;
+                  },
+                }}
+              >
+                {(field) => (
+                  <Field>
+                    <Label htmlFor={field.name}>Vipps number</Label>
+                    <Input
+                      id={field.name}
+                      type="tel"
+                      inputMode="tel"
+                      placeholder="XX XX XX XX"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                    <FieldDescription>Norwegian payment service.</FieldDescription>
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="text-sm text-destructive">
+                        {field.state.meta.errors.join(", ")}
+                      </p>
+                    )}
+                  </Field>
+                )}
+              </form.Field>
+
+              <form.Field
+                name="mobilepay"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (!value) return undefined;
+                    const cleaned = value.replace(/[\s-]/g, "");
+                    if (!/^\+?\d{8,16}$/.test(cleaned)) {
+                      return "Enter a valid MobilePay number";
+                    }
+                    return undefined;
+                  },
+                }}
+              >
+                {(field) => (
+                  <Field>
+                    <Label htmlFor={field.name}>MobilePay number</Label>
+                    <Input
+                      id={field.name}
+                      type="tel"
+                      inputMode="tel"
+                      placeholder="XX XX XX XX"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                    <FieldDescription>Danish and Finnish payment service.</FieldDescription>
                     {field.state.meta.errors.length > 0 && (
                       <p className="text-sm text-destructive">
                         {field.state.meta.errors.join(", ")}

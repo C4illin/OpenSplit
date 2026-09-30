@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wrapper } from "@/components/Wrapper";
 import {
+  useConverter,
   useCreateSettlement,
   useDeleteSettlement,
   useExpenses,
@@ -71,17 +72,19 @@ function SettlementRow({
   onMarkPaid,
   onPay,
   isMarking,
+  convert,
 }: {
   settlement: Settlement;
   currency: string;
   currentUserId: string;
   onMarkPaid: (settlement: Settlement) => void;
-  onPay: (settlement: Settlement, method: PaymentMethod) => void;
+  onPay: (settlement: Settlement, method: PaymentMethod, amount: number, currency: string) => void;
   isMarking: boolean;
+  convert: (amount: number, from: string, to: string) => number | null;
 }) {
   const { from, to, amount } = settlement;
   const viewerIsDebtor = from.id === currentUserId;
-  const methods = viewerIsDebtor ? availableMethods(to, currency) : [];
+  const methods = viewerIsDebtor ? availableMethods(to, from) : [];
 
   return (
     <Card size="sm">
@@ -101,11 +104,28 @@ function SettlementRow({
                 {to.name || to.username} hasn't set up a payment method.
               </span>
             ) : (
-              methods.map((method) => (
-                <Button key={method.id} size="sm" onClick={() => onPay(settlement, method)}>
-                  {method.buttonLabel ?? `Pay with ${method.name}`}
-                </Button>
-              ))
+              methods.flatMap((method) => {
+                return method.targetCurrencies.map((reqCurr) => {
+                  const targetCode =
+                    reqCurr && reqCurr.toLowerCase() !== currency.toLowerCase() ? reqCurr : null;
+                  const targetAmount = targetCode ? convert(amount, currency, targetCode) : amount;
+                  const canPay = targetAmount !== null;
+                  const label = method.buttonLabel ?? `Pay with ${method.name}`;
+                  return (
+                    <Button
+                      key={`${method.id}-${reqCurr || "native"}`}
+                      size="sm"
+                      disabled={!canPay}
+                      onClick={() =>
+                        onPay(settlement, method, targetAmount!, targetCode || currency)
+                      }
+                    >
+                      {label}
+                      {targetCode && canPay && ` (${formatAmount(targetAmount, targetCode)})`}
+                    </Button>
+                  );
+                });
+              })
             )}
             <Button
               size="sm"
@@ -131,6 +151,7 @@ function RouteComponent() {
   const { data: pastSettlements } = useSettlements(id);
   const createSettlement = useCreateSettlement();
   const deleteSettlement = useDeleteSettlement();
+  const convert = useConverter();
   const currentUserId = pb.authStore.record?.id ?? "";
 
   // Set after a settlement is recorded so we can offer to undo it — the Swish
@@ -174,7 +195,12 @@ function RouteComponent() {
   // Tapping "Pay with Swish" stashes the settlement, then app-switches to Swish.
   // Swish returns to this page (callbackurl) with a `result` query param, which
   // the effect below reads to optimistically record the payment.
-  const handlePay = (s: Settlement, method: PaymentMethod) => {
+  const handlePay = (
+    s: Settlement,
+    method: PaymentMethod,
+    targetAmount: number,
+    targetCurrency: string,
+  ) => {
     const pending: PendingSettlement = {
       group: id,
       from: s.from.id,
@@ -188,8 +214,8 @@ function RouteComponent() {
     const callbackUrl = window.location.origin + window.location.pathname;
     window.location.href = method.buildUrl({
       payee: s.to,
-      amount: s.amount,
-      currency,
+      amount: targetAmount,
+      currency: targetCurrency,
       message: `OpenSplit: ${groupName}`,
       callbackUrl,
     });
@@ -259,6 +285,7 @@ function RouteComponent() {
                     onMarkPaid={handleMarkPaid}
                     onPay={handlePay}
                     isMarking={createSettlement.isPending}
+                    convert={convert}
                   />
                 ))}
               </section>
@@ -275,6 +302,7 @@ function RouteComponent() {
                     onMarkPaid={handleMarkPaid}
                     onPay={handlePay}
                     isMarking={createSettlement.isPending}
+                    convert={convert}
                   />
                 ))}
               </section>

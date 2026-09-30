@@ -610,7 +610,13 @@ export const useExternalAuths = () => {
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { name?: string; swish?: string; revolut?: string }) => {
+    mutationFn: async (data: {
+      name?: string;
+      swish?: string;
+      revolut?: string;
+      vipps?: string;
+      mobilepay?: string;
+    }) => {
       const userId = pb.authStore.record?.id;
       if (!userId) throw new Error("Not authenticated");
       return await pb.collection("users").update<UsersResponse>(userId, data);

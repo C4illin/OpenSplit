@@ -16,7 +16,8 @@ export type PaymentMethod = {
   id: string;
   name: string;
   buttonLabel?: string;
-  isAvailable: (payee: UsersResponse, currency: string) => boolean;
+  isAvailable: (payee: UsersResponse, payer: UsersResponse | null) => boolean;
+  targetCurrencies: (string | null)[];
   buildUrl: (ctx: PaymentContext) => string;
 };
 
@@ -93,7 +94,8 @@ function buildRevolutUrl({ payee, amount, currency, message }: PaymentContext) {
 export const swish: PaymentMethod = {
   id: "swish",
   name: "Swish",
-  isAvailable: (payee, currency) => !!payee.swish && currency.toUpperCase() === "SEK",
+  isAvailable: (payee) => !!payee.swish,
+  targetCurrencies: ["sek"],
   buildUrl: (ctx) => (ctx.callbackUrl ? buildSwishAppSwitchUrl(ctx) : buildSwishWebUrl(ctx)),
 };
 
@@ -102,11 +104,48 @@ export const revolut: PaymentMethod = {
   name: "Revolut",
   buttonLabel: "Pay with Revolut (Card / Apple Pay)",
   isAvailable: (payee) => !!payee.revolut && !!sanitizeRevolutTag(payee.revolut),
+  targetCurrencies: [null],
   buildUrl: buildRevolutUrl,
 };
 
-export const paymentMethods: PaymentMethod[] = [swish, revolut];
+export const vipps: PaymentMethod = {
+  id: "vipps",
+  name: "Vipps",
+  isAvailable: (payee, payer) => {
+    if (!payee.vipps && !payee.mobilepay) return false;
+    if (payer) {
+      if (payer.vipps) return true;
+      if (payer.mobilepay) return false;
+    }
+    return !!payee.vipps;
+  },
+  targetCurrencies: ["nok"],
+  buildUrl: ({ payee, amount }) => {
+    const phone = payee.vipps || payee.mobilepay;
+    return `https://qr.vipps.no/28/2/01/031/${phone}?a=${amount}`;
+  },
+};
 
-export function availableMethods(payee: UsersResponse, currency: string) {
-  return paymentMethods.filter((m) => m.isAvailable(payee, currency));
+export const mobilepay: PaymentMethod = {
+  id: "mobilepay",
+  name: "MobilePay",
+  isAvailable: (payee, payer) => {
+    if (!payee.vipps && !payee.mobilepay) return false;
+    if (payer) {
+      if (payer.mobilepay) return true;
+      if (payer.vipps) return false;
+    }
+    return !!payee.mobilepay;
+  },
+  targetCurrencies: ["dkk", "eur"],
+  buildUrl: ({ payee, amount }) => {
+    const phone = payee.mobilepay || payee.vipps;
+    return `mobilepay://send?phone=${phone}&amount=${amount}`;
+  },
+};
+
+export const paymentMethods: PaymentMethod[] = [swish, revolut, vipps, mobilepay];
+
+export function availableMethods(payee: UsersResponse, payer: UsersResponse | null = null) {
+  return paymentMethods.filter((m) => m.isAvailable(payee, payer));
 }

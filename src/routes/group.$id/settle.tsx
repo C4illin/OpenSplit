@@ -309,6 +309,33 @@ function RouteComponent() {
             )}
           </>
         )}
+        {pastSettlements && pastSettlements.length > 0 && (
+          <section className="mt-4 flex flex-col gap-2">
+            <h2 className="text-sm font-medium text-muted-foreground">History</h2>
+            {pastSettlements.map((s) => {
+              const from = s.expand?.from;
+              const to = s.expand?.to;
+              if (!from || !to) return null;
+              return (
+                <Card key={s.id} size="sm">
+                  <CardContent className="flex items-center gap-2">
+                    <MemberAvatar member={from} />
+                    <span className="text-sm">{from.name || from.username}</span>
+                    <ArrowRight size={16} className="text-muted-foreground" />
+                    <MemberAvatar member={to} />
+                    <span className="text-sm">{to.name || to.username}</span>
+                    <div className="ml-auto flex flex-col items-end">
+                      <span className="font-medium">{formatAmount(s.amount, s.currency)}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(s.created).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </section>
+        )}
       </Wrapper>
       {undo && (
         <div

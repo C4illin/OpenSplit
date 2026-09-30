@@ -81,7 +81,7 @@ function SettlementRow({
 }) {
   const { from, to, amount } = settlement;
   const viewerIsDebtor = from.id === currentUserId;
-  const methods = viewerIsDebtor ? availableMethods(to, currency) : [];
+  const methods = viewerIsDebtor ? availableMethods(to, currency, from) : [];
 
   return (
     <Card size="sm">

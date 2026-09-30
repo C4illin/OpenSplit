@@ -1,8 +1,10 @@
 # OpenSplit
 
+[![Docker](https://github.com/C4illin/OpenSplit/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/C4illin/OpenSplit/actions/workflows/docker-publish.yml)
+
 A self-hosted web application for splitting bills and expenses with friends. Only Google oauth is supported for authentication, but only UI is needed for more providers, as PocketBase supports many more providers out of the box. Currencies are fetched from European Central Bank (ECB) and therefore supports all currencies that are supported by ECB.
 
-### Payment methods:
+## Payment methods
 
 - Revolut
   - Which supports payments with card and apple pay.
@@ -10,6 +12,13 @@ A self-hosted web application for splitting bills and expenses with friends. Onl
 - Vipps/Mobilepay (🇳🇴🇸🇪🇩🇰🇫🇮)
 
 More can be added, submit a PR or issue!
+
+## Features
+
+- Multi groups
+- Currency conversion (ECB rates)
+- Notifications
+- Progressive web app (PWA)
 
 ## Screenshots
 

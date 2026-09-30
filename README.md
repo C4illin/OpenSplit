@@ -11,6 +11,17 @@ A self-hosted web application for splitting bills and expenses with friends. Onl
 
 More can be added, submit a PR or issue!
 
+## Screenshots
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/c4illin/opensplit/main/docs/screenshots/overview.png">
+    <img src="docs/screenshots/overview.png" width="33%">
+  </a>
+  <a href="https://raw.githubusercontent.com/c4illin/opensplit/main/docs/screenshots/group-screen.png">
+    <img src="docs/screenshots/group-screen.png" width="33%">
+  </a>
+</p>
+
 ## Install
 
 ```yaml

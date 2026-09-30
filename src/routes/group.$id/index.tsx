@@ -226,10 +226,14 @@ function RouteComponent() {
                                 />
                               )}
                               {expense.expand?.category && (
-                                <Badge variant="secondary">{expense.expand.category.name}</Badge>
+                                <Badge variant="secondary" className="min-w-0 shrink justify-start">
+                                  <span className="truncate">{expense.expand.category.name}</span>
+                                </Badge>
                               )}
                               {expense.expand?.project && (
-                                <Badge variant="default">{expense.expand.project.name}</Badge>
+                                <Badge variant="default" className="min-w-0 shrink justify-start">
+                                  <span className="truncate">{expense.expand.project.name}</span>
+                                </Badge>
                               )}
                             </div>
                           </div>

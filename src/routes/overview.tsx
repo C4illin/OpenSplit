@@ -25,7 +25,7 @@ function RouteComponent() {
   return (
     <>
       <Header>
-        <h1>Your Groups</h1>
+        <h1 className="text-xl font-semibold">Your Groups</h1>
         <div className="flex items-center gap-2">
           <Link to="/profile">
             <Button variant="ghost" size="icon" aria-label="Profile">
@@ -35,7 +35,7 @@ function RouteComponent() {
           <GroupDialog />
         </div>
       </Header>
-      <Wrapper className="flex flex-col gap-4">
+      <Wrapper className="flex flex-col gap-4 px-2">
         {!groups?.length ? (
           <p>You are not a member of any groups.</p>
         ) : (

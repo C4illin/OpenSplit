@@ -322,7 +322,7 @@ function RouteComponent() {
                       id={field.name}
                       type="tel"
                       inputMode="tel"
-                      placeholder="07XX XXX XX XX"
+                      placeholder="07N NNN NN NN"
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
@@ -403,12 +403,14 @@ function RouteComponent() {
                       id={field.name}
                       type="tel"
                       inputMode="tel"
-                      placeholder="XX XX XX XX"
+                      placeholder="+NN NN NNN NN NN"
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
-                    <FieldDescription>Norwegian payment service.</FieldDescription>
+                    <FieldDescription>
+                      Norwegian payment service with support for Sweden.
+                    </FieldDescription>
                     {field.state.meta.errors.length > 0 && (
                       <p className="text-sm text-destructive">
                         {field.state.meta.errors.join(", ")}
@@ -438,7 +440,7 @@ function RouteComponent() {
                       id={field.name}
                       type="tel"
                       inputMode="tel"
-                      placeholder="XX XX XX XX"
+                      placeholder="+NN NN NNN NN NN"
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}

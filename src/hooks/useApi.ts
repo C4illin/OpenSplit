@@ -16,31 +16,35 @@ import type {
   SplitsResponse,
   UsersResponse,
 } from "@/types/pocketbase-types.gen";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { pb } from "../lib/pocketbase";
 
 // Currencies and rates change at most once a day and are shared across the app,
 // so cache them aggressively.
 const DAY = 1000 * 60 * 60 * 24;
 
+export const currenciesQueryOptions = queryOptions({
+  queryKey: ["currencies"],
+  queryFn: async () => {
+    return await pb.collection("currencies").getFullList<CurrenciesResponse>({ sort: "name" });
+  },
+  staleTime: DAY,
+});
+
 export const useCurrencies = () => {
-  return useQuery({
-    queryKey: ["currencies"],
-    queryFn: async () => {
-      return await pb.collection("currencies").getFullList<CurrenciesResponse>({ sort: "name" });
-    },
-    staleTime: DAY,
-  });
+  return useQuery(currenciesQueryOptions);
 };
 
+export const ratesQueryOptions = queryOptions({
+  queryKey: ["rates"],
+  queryFn: async () => {
+    return await pb.collection("rates").getFullList<RatesResponse>({ sort: "-date" });
+  },
+  staleTime: DAY,
+});
+
 export const useRates = () => {
-  return useQuery({
-    queryKey: ["rates"],
-    queryFn: async () => {
-      return await pb.collection("rates").getFullList<RatesResponse>({ sort: "-date" });
-    },
-    staleTime: DAY,
-  });
+  return useQuery(ratesQueryOptions);
 };
 
 /**
@@ -75,9 +79,9 @@ type GroupsExpand = {
 };
 
 // Groups
-export const useGroups = () => {
+export const groupsQueryOptions = () => {
   const userId = pb.authStore.record?.id;
-  return useQuery({
+  return queryOptions({
     queryKey: ["groups", userId],
     queryFn: async () => {
       return await pb.collection("groups").getFullList<GroupsResponse<GroupsExpand>>({
@@ -90,8 +94,12 @@ export const useGroups = () => {
   });
 };
 
-export const useGroup = (groupId: string) => {
-  return useQuery({
+export const useGroups = () => {
+  return useQuery(groupsQueryOptions());
+};
+
+export const groupQueryOptions = (groupId: string) =>
+  queryOptions({
     queryKey: ["groups", groupId],
     queryFn: async () => {
       return await pb.collection("groups").getOne<GroupsResponse<GroupsExpand>>(groupId, {
@@ -100,6 +108,9 @@ export const useGroup = (groupId: string) => {
     },
     enabled: !!groupId,
   });
+
+export const useGroup = (groupId: string) => {
+  return useQuery(groupQueryOptions(groupId));
 };
 
 export const useCreateGroup = () => {
@@ -114,7 +125,8 @@ export const useCreateGroup = () => {
       });
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["groups"] });
+      await // eslint-disable-next-line @tanstack/query/prefer-query-options
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
 };
@@ -127,7 +139,8 @@ export const useUpdateGroup = () => {
     },
     onSuccess: async () => {
       // Covers both the group list (["groups", userId]) and single group (["groups", id]).
-      await queryClient.invalidateQueries({ queryKey: ["groups"] });
+      await // eslint-disable-next-line @tanstack/query/prefer-query-options
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
 };
@@ -143,16 +156,17 @@ export const useDeleteGroup = () => {
     onSuccess: async (_data, id) => {
       // Refetching the deleted group would 404, so drop its query and only
       // mark the rest stale; the list refetches when the overview mounts.
-      queryClient.removeQueries({ queryKey: ["groups", id] });
-      await queryClient.invalidateQueries({ queryKey: ["groups"], refetchType: "none" });
+      queryClient.removeQueries({ queryKey: groupQueryOptions(id).queryKey });
+      await // eslint-disable-next-line @tanstack/query/prefer-query-options
+      queryClient.invalidateQueries({ queryKey: ["groups"], refetchType: "none" });
     },
   });
 };
 
 // Categories
 
-export const useCategories = (groupId: string) => {
-  return useQuery({
+export const categoriesQueryOptions = (groupId: string) =>
+  queryOptions({
     queryKey: ["categories", groupId],
     queryFn: async () => {
       return await pb.collection("categories").getFullList<CategoriesResponse>({
@@ -162,6 +176,9 @@ export const useCategories = (groupId: string) => {
     },
     enabled: !!groupId,
   });
+
+export const useCategories = (groupId: string) => {
+  return useQuery(categoriesQueryOptions(groupId));
 };
 
 export const useCreateCategory = () => {
@@ -171,15 +188,17 @@ export const useCreateCategory = () => {
       return await pb.collection("categories").create<CategoriesResponse>(data);
     },
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ["categories", variables.group] });
+      await queryClient.invalidateQueries({
+        queryKey: categoriesQueryOptions(variables.group).queryKey,
+      });
     },
   });
 };
 
 // Projects
 
-export const useProjects = (groupId: string) => {
-  return useQuery({
+export const projectsQueryOptions = (groupId: string) =>
+  queryOptions({
     queryKey: ["projects", groupId],
     queryFn: async () => {
       return await pb.collection("projects").getFullList<ProjectsResponse>({
@@ -189,6 +208,9 @@ export const useProjects = (groupId: string) => {
     },
     enabled: !!groupId,
   });
+
+export const useProjects = (groupId: string) => {
+  return useQuery(projectsQueryOptions(groupId));
 };
 
 export const useCreateProject = () => {
@@ -198,7 +220,9 @@ export const useCreateProject = () => {
       return await pb.collection("projects").create<ProjectsResponse>(data);
     },
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ["projects", variables.group] });
+      await queryClient.invalidateQueries({
+        queryKey: projectsQueryOptions(variables.group).queryKey,
+      });
     },
   });
 };
@@ -211,8 +235,8 @@ type ExpensesExpand = {
   project?: ProjectsResponse;
 };
 
-export const useExpenses = (groupId: string) => {
-  return useQuery({
+export const expensesQueryOptions = (groupId: string) =>
+  queryOptions({
     queryKey: ["expenses", groupId],
     queryFn: async () => {
       return await pb.collection("expenses").getFullList<ExpensesResponse<ExpensesExpand>>({
@@ -223,10 +247,13 @@ export const useExpenses = (groupId: string) => {
     },
     enabled: !!groupId,
   });
+
+export const useExpenses = (groupId: string) => {
+  return useQuery(expensesQueryOptions(groupId));
 };
 
-export const useSplits = (groupId: string) => {
-  return useQuery({
+export const splitsQueryOptions = (groupId: string) =>
+  queryOptions({
     queryKey: ["splits", groupId],
     queryFn: async () => {
       return await pb.collection("splits").getFullList<SplitsResponse>({
@@ -235,6 +262,9 @@ export const useSplits = (groupId: string) => {
     },
     enabled: !!groupId,
   });
+
+export const useSplits = (groupId: string) => {
+  return useQuery(splitsQueryOptions(groupId));
 };
 
 type CreateExpenseData = {
@@ -280,10 +310,10 @@ export const useCreateExpense = () => {
     },
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: ["expenses", variables.group],
+        queryKey: expensesQueryOptions(variables.group).queryKey,
       });
       await queryClient.invalidateQueries({
-        queryKey: ["splits", variables.group],
+        queryKey: splitsQueryOptions(variables.group).queryKey,
       });
     },
   });
@@ -293,8 +323,8 @@ type GetExpenseExpand = {
   splits_via_expense?: SplitsResponse[];
 };
 
-export const useGetExpense = (expenseId: string) => {
-  return useQuery({
+export const getExpenseQueryOptions = (expenseId: string) =>
+  queryOptions({
     queryKey: ["expense", expenseId],
     queryFn: async () => {
       return await pb.collection("expenses").getOne<ExpensesResponse<GetExpenseExpand>>(expenseId, {
@@ -303,6 +333,9 @@ export const useGetExpense = (expenseId: string) => {
     },
     enabled: !!expenseId,
   });
+
+export const useGetExpense = (expenseId: string) => {
+  return useQuery(getExpenseQueryOptions(expenseId));
 };
 
 type UpdateExpenseData = {
@@ -353,13 +386,13 @@ export const useUpdateExpense = () => {
     },
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: ["expense", variables.id],
+        queryKey: getExpenseQueryOptions(variables.id).queryKey,
       });
       await queryClient.invalidateQueries({
-        queryKey: ["expenses", variables.group],
+        queryKey: expensesQueryOptions(variables.group).queryKey,
       });
       await queryClient.invalidateQueries({
-        queryKey: ["splits", variables.group],
+        queryKey: splitsQueryOptions(variables.group).queryKey,
       });
     },
   });
@@ -374,10 +407,10 @@ export const useDeleteExpense = () => {
     },
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: ["expenses", variables.group],
+        queryKey: expensesQueryOptions(variables.group).queryKey,
       });
       await queryClient.invalidateQueries({
-        queryKey: ["splits", variables.group],
+        queryKey: splitsQueryOptions(variables.group).queryKey,
       });
     },
   });
@@ -399,8 +432,8 @@ type RecurringExpensesExpand = {
 
 export type RecurringExpense = RecurringExpensesResponse<RecurringExpensesExpand>;
 
-export const useRecurringExpenses = (groupId: string) => {
-  return useQuery({
+export const recurringExpensesQueryOptions = (groupId: string) =>
+  queryOptions({
     queryKey: ["recurringExpenses", groupId],
     queryFn: async () => {
       return await pb.collection("recurring_expenses").getFullList<RecurringExpense>({
@@ -411,10 +444,13 @@ export const useRecurringExpenses = (groupId: string) => {
     },
     enabled: !!groupId,
   });
+
+export const useRecurringExpenses = (groupId: string) => {
+  return useQuery(recurringExpensesQueryOptions(groupId));
 };
 
-export const useRecurringExpense = (id: string) => {
-  return useQuery({
+export const recurringExpenseQueryOptions = (id: string) =>
+  queryOptions({
     queryKey: ["recurringExpense", id],
     queryFn: async () => {
       return await pb.collection("recurring_expenses").getOne<RecurringExpense>(id, {
@@ -423,6 +459,9 @@ export const useRecurringExpense = (id: string) => {
     },
     enabled: !!id,
   });
+
+export const useRecurringExpense = (id: string) => {
+  return useQuery(recurringExpenseQueryOptions(id));
 };
 
 type RecurringExpenseFields = {
@@ -469,7 +508,9 @@ export const useCreateRecurringExpense = () => {
       return recurring;
     },
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ["recurringExpenses", variables.group] });
+      await queryClient.invalidateQueries({
+        queryKey: recurringExpensesQueryOptions(variables.group).queryKey,
+      });
     },
   });
 };
@@ -498,8 +539,12 @@ export const useUpdateRecurringExpense = () => {
       return recurring;
     },
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ["recurringExpense", variables.id] });
-      await queryClient.invalidateQueries({ queryKey: ["recurringExpenses", variables.group] });
+      await queryClient.invalidateQueries({
+        queryKey: recurringExpenseQueryOptions(variables.id).queryKey,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: recurringExpensesQueryOptions(variables.group).queryKey,
+      });
     },
   });
 };
@@ -515,8 +560,10 @@ export const useDeleteRecurringExpense = () => {
       await pb.collection("recurring_expenses").delete(data.id);
     },
     onSuccess: async (_data, variables) => {
-      queryClient.removeQueries({ queryKey: ["recurringExpense", variables.id] });
-      await queryClient.invalidateQueries({ queryKey: ["recurringExpenses", variables.group] });
+      queryClient.removeQueries({ queryKey: recurringExpenseQueryOptions(variables.id).queryKey });
+      await queryClient.invalidateQueries({
+        queryKey: recurringExpensesQueryOptions(variables.group).queryKey,
+      });
     },
   });
 };
@@ -528,8 +575,8 @@ type SettlementsExpand = {
   to?: UsersResponse;
 };
 
-export const useSettlements = (groupId: string) => {
-  return useQuery({
+export const settlementsQueryOptions = (groupId: string) =>
+  queryOptions({
     queryKey: ["settlements", groupId],
     queryFn: async () => {
       return await pb
@@ -542,6 +589,9 @@ export const useSettlements = (groupId: string) => {
     },
     enabled: !!groupId,
   });
+
+export const useSettlements = (groupId: string) => {
+  return useQuery(settlementsQueryOptions(groupId));
 };
 
 type CreateSettlementData = {
@@ -560,7 +610,7 @@ export const useCreateSettlement = () => {
     },
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: ["settlements", variables.group],
+        queryKey: settlementsQueryOptions(variables.group).queryKey,
       });
     },
   });
@@ -574,7 +624,7 @@ export const useDeleteSettlement = () => {
     },
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: ["settlements", variables.group],
+        queryKey: settlementsQueryOptions(variables.group).queryKey,
       });
     },
   });
@@ -582,9 +632,9 @@ export const useDeleteSettlement = () => {
 
 // Profile
 
-export const useCurrentUser = () => {
+export const currentUserQueryOptions = () => {
   const userId = pb.authStore.record?.id;
-  return useQuery({
+  return queryOptions({
     queryKey: ["users", userId],
     queryFn: async () => {
       return await pb.collection("users").getOne<UsersResponse>(userId!);
@@ -593,10 +643,14 @@ export const useCurrentUser = () => {
   });
 };
 
-export const useExternalAuths = () => {
+export const useCurrentUser = () => {
+  return useQuery(currentUserQueryOptions());
+};
+
+export const externalAuthsQueryOptions = () => {
   const userId = pb.authStore.record?.id;
   const collectionId = pb.authStore.record?.collectionId;
-  return useQuery({
+  return queryOptions({
     queryKey: ["users", userId, "externalAuths", collectionId],
     queryFn: async () => {
       return await pb.collection("_externalAuths").getFullList<ExternalauthsResponse>({
@@ -605,6 +659,10 @@ export const useExternalAuths = () => {
     },
     enabled: !!userId && !!collectionId,
   });
+};
+
+export const useExternalAuths = () => {
+  return useQuery(externalAuthsQueryOptions());
 };
 
 export const useUpdateProfile = () => {
@@ -622,7 +680,8 @@ export const useUpdateProfile = () => {
       return await pb.collection("users").update<UsersResponse>(userId, data);
     },
     onSuccess: async (record) => {
-      await queryClient.invalidateQueries({ queryKey: ["users", record.id] });
+      await // eslint-disable-next-line @tanstack/query/prefer-query-options
+      queryClient.invalidateQueries({ queryKey: ["users", record.id] });
     },
   });
 };
@@ -648,8 +707,8 @@ export const useCreateInvite = () => {
   });
 };
 
-export const useInvitePreview = (token: string) => {
-  return useQuery({
+export const invitePreviewQueryOptions = (token: string) =>
+  queryOptions({
     queryKey: ["invites", "preview", token],
     queryFn: async () => {
       return (await pb.send(`/api/invites/${token}`, {})) as {
@@ -659,6 +718,9 @@ export const useInvitePreview = (token: string) => {
     },
     enabled: !!token,
   });
+
+export const useInvitePreview = (token: string) => {
+  return useQuery(invitePreviewQueryOptions(token));
 };
 
 export const useAcceptInvite = () => {
@@ -670,7 +732,8 @@ export const useAcceptInvite = () => {
       })) as { groupId: string };
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["groups"] });
+      await // eslint-disable-next-line @tanstack/query/prefer-query-options
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
   });
 };

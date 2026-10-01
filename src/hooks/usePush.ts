@@ -1,6 +1,6 @@
 import { pb } from "@/lib/pocketbase";
 import type { PushSubscriptionsResponse } from "@/types/pocketbase-types.gen";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // The VAPID application server key must be passed as raw bytes.
 function urlBase64ToUint8Array(base64String: string) {
@@ -28,8 +28,8 @@ const findServerSubscription = async (endpoint: string) => {
 };
 
 /** The push subscription of this browser/device, or null when not subscribed. */
-export const usePushSubscription = () => {
-  return useQuery({
+export const pushSubscriptionQueryOptions = () =>
+  queryOptions({
     queryKey: ["pushSubscription"],
     queryFn: async () => {
       const registration = await navigator.serviceWorker.ready;
@@ -37,6 +37,9 @@ export const usePushSubscription = () => {
     },
     enabled: isPushSupported(),
   });
+
+export const usePushSubscription = () => {
+  return useQuery(pushSubscriptionQueryOptions());
 };
 
 export const useEnablePush = () => {
@@ -84,7 +87,7 @@ export const useEnablePush = () => {
       return subscription;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["pushSubscription"] });
+      await queryClient.invalidateQueries({ queryKey: pushSubscriptionQueryOptions().queryKey });
     },
   });
 };
@@ -104,7 +107,7 @@ export const useDisablePush = () => {
       }
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["pushSubscription"] });
+      await queryClient.invalidateQueries({ queryKey: pushSubscriptionQueryOptions().queryKey });
     },
   });
 };

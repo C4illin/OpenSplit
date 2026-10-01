@@ -634,10 +634,9 @@ export const useChangePassword = () => {
       password: string;
       passwordConfirm: string;
     }) => {
-      return await pb.send<{ success: boolean }>("/api/user/password", {
-        method: "POST",
-        body: data,
-      });
+      const userId = pb.authStore.record?.id;
+      if (!userId) throw new Error("Not authenticated");
+      return await pb.collection("users").update<UsersResponse>(userId, data);
     },
   });
 };

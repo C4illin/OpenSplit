@@ -6,8 +6,16 @@ const pocketbaseUrl = import.meta.env.VITE_POCKETBASE_URL || window.location.ori
 
 export const pb = new PocketBase(pocketbaseUrl) as TypedPocketBase;
 
-// Enable auto-refresh for auth
 pb.autoCancellation(false);
+
+// Auto-refresh auth token on load to keep session active
+if (pb.authStore.isValid) {
+  pb.collection("users")
+    .authRefresh()
+    .catch(() => {
+      pb.authStore.clear();
+    });
+}
 
 export function getAvatarUrl(
   record: { id: string; collectionId: string; collectionName: string },

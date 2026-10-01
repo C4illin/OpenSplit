@@ -97,7 +97,9 @@ export const useAuth = () => {
 
   const loginWithPassword = useCallback(
     async (email: string, password: string): Promise<RecordAuthResponse<UsersResponse>> => {
-      return await pb.collection("users").authWithPassword<UsersResponse>(email.trim(), password);
+      return await pb
+        .collection("users")
+        .authWithPassword<UsersResponse>(email.trim().toLowerCase(), password);
     },
     [],
   );
@@ -110,20 +112,20 @@ export const useAuth = () => {
       name?: string;
     }): Promise<RecordAuthResponse<UsersResponse>> => {
       await pb.collection("users").create({
-        email: data.email.trim(),
+        email: data.email.trim().toLowerCase(),
         password: data.password,
         passwordConfirm: data.passwordConfirm,
         name: data.name?.trim() || undefined,
       });
       return await pb
         .collection("users")
-        .authWithPassword<UsersResponse>(data.email.trim(), data.password);
+        .authWithPassword<UsersResponse>(data.email.trim().toLowerCase(), data.password);
     },
     [],
   );
 
   const requestPasswordReset = useCallback(async (email: string): Promise<boolean> => {
-    return await pb.collection("users").requestPasswordReset(email.trim());
+    return await pb.collection("users").requestPasswordReset(email.trim().toLowerCase());
   }, []);
 
   const loginWithGoogle = useCallback(async (returnTo?: string) => {

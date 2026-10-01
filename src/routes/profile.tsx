@@ -200,11 +200,20 @@ function ChangePasswordCard() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
+  // Password changing is disabled on OAuth accounts
+  if (hasExternalAuth) {
+    return null;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSaved(false);
 
+    if (!oldPassword) {
+      setError("Current password is required.");
+      return;
+    }
     if (password.length < 8) {
       setError("Password must be at least 8 characters long.");
       return;
@@ -216,7 +225,7 @@ function ChangePasswordCard() {
 
     try {
       await changePassword.mutateAsync({
-        oldPassword: oldPassword || undefined,
+        oldPassword,
         password,
         passwordConfirm,
       });
@@ -232,12 +241,7 @@ function ChangePasswordCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{hasExternalAuth ? "Set or change password" : "Change password"}</CardTitle>
-        {hasExternalAuth && (
-          <p className="text-xs text-muted-foreground">
-            Setting a password allows you to sign in using either Google or your email and password.
-          </p>
-        )}
+        <CardTitle>Change password</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -261,27 +265,19 @@ function ChangePasswordCard() {
                 dark:text-emerald-400
               "
             >
-              Password saved successfully. You can now log in with email and password.
+              Password updated successfully.
             </div>
           )}
 
           <Field>
-            <Label htmlFor="current-profile-password">
-              Current password{" "}
-              {hasExternalAuth && (
-                <span className="font-normal text-muted-foreground">
-                  (optional for Google sign-in)
-                </span>
-              )}
-            </Label>
+            <Label htmlFor="current-profile-password">Current password</Label>
             <InputGroup>
               <InputGroupInput
                 id="current-profile-password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                placeholder={
-                  hasExternalAuth ? "Leave blank if you haven't set a password" : "••••••••"
-                }
+                required
+                placeholder="••••••••"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
               />

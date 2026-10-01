@@ -154,9 +154,6 @@ function RouteComponent() {
   const convert = useConverter();
   const currentUserId = pb.authStore.record?.id ?? "";
 
-  // Set after a settlement is recorded so we can offer to undo it — the Swish
-  // callback is only an app-return signal, not a verified payment, so marking
-  // paid is always optimistic.
   const [undo, setUndo] = useState<{ id: string; label: string } | null>(null);
 
   const currency = group?.currency || "sek";
@@ -211,6 +208,11 @@ function RouteComponent() {
       stashedAt: Date.now(),
     };
     localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+
+    if ((method.id === "vipps" || method.id === "mobilepay") && navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(targetAmount.toString()).catch(() => {});
+    }
+
     const callbackUrl = window.location.origin + window.location.pathname;
     window.location.href = method.buildUrl({
       payee: s.to,

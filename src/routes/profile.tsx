@@ -389,8 +389,8 @@ function RouteComponent() {
                   onChange: ({ value }) => {
                     if (!value) return undefined;
                     const cleaned = value.replace(/[\s-]/g, "");
-                    if (!/^\+?\d{8,16}$/.test(cleaned)) {
-                      return "Enter a valid Vipps number";
+                    if (!/^\+\d{8,16}$/.test(cleaned)) {
+                      return "Include country code starting with + (e.g. +47...)";
                     }
                     return undefined;
                   },
@@ -426,8 +426,8 @@ function RouteComponent() {
                   onChange: ({ value }) => {
                     if (!value) return undefined;
                     const cleaned = value.replace(/[\s-]/g, "");
-                    if (!/^\+?\d{8,16}$/.test(cleaned)) {
-                      return "Enter a valid MobilePay number";
+                    if (!/^\+\d{8,16}$/.test(cleaned)) {
+                      return "Include country code starting with + (e.g. +45...)";
                     }
                     return undefined;
                   },

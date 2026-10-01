@@ -108,6 +108,10 @@ export const revolut: PaymentMethod = {
   buildUrl: buildRevolutUrl,
 };
 
+export function removePlusInPhoneNumber(phone: string): string {
+  return phone.replace(/^\+/, "").replace(/\D/g, "");
+}
+
 export const vipps: PaymentMethod = {
   id: "vipps",
   name: "Vipps",
@@ -120,11 +124,19 @@ export const vipps: PaymentMethod = {
     return !!payee.vipps;
   },
   targetCurrencies: ["nok"],
-  buildUrl: ({ payee, amount }) => {
-    const phone = payee.vipps || payee.mobilepay;
-    return `https://qr.vipps.no/28/2/01/031/${phone}?a=${amount}`;
+  buildUrl: ({ payee }) => {
+    const raw = payee.vipps || payee.mobilepay || "";
+    const phone = removePlusInPhoneNumber(raw);
+    return `https://qr.vipps.no/28/2/01/031/${phone}?v=1`;
   },
 };
+
+function getMobilePayDomain(currency: string, phone: string): string {
+  if (currency.toLowerCase() === "eur" || phone.startsWith("358")) {
+    return "qr.mobilepay.fi";
+  }
+  return "qr.mobilepay.dk";
+}
 
 export const mobilepay: PaymentMethod = {
   id: "mobilepay",
@@ -138,9 +150,11 @@ export const mobilepay: PaymentMethod = {
     return !!payee.mobilepay;
   },
   targetCurrencies: ["dkk", "eur"],
-  buildUrl: ({ payee, amount }) => {
-    const phone = payee.mobilepay || payee.vipps;
-    return `mobilepay://send?phone=${phone}&amount=${amount}`;
+  buildUrl: ({ payee, currency }) => {
+    const raw = payee.mobilepay || payee.vipps || "";
+    const phone = removePlusInPhoneNumber(raw);
+    const domain = getMobilePayDomain(currency, phone);
+    return `https://${domain}/28/2/01/031/${phone}?v=1`;
   },
 };
 

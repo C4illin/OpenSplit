@@ -216,7 +216,7 @@ function ChangePasswordCard() {
 
     try {
       await changePassword.mutateAsync({
-        oldPassword: oldPassword.trim() || undefined,
+        oldPassword: oldPassword || undefined,
         password,
         passwordConfirm,
       });

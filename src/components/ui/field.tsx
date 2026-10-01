@@ -1,9 +1,8 @@
-import { useMemo } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { useMemo } from "react";
 
-import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
   return (
@@ -143,18 +142,12 @@ function FieldSeparator({
     <div
       data-slot="field-separator"
       data-content={!!children}
-      className={cn(
-        "flex items-center text-xs text-muted-foreground",
-        className,
-      )}
+      className={cn("flex items-center text-xs text-muted-foreground", className)}
       {...props}
     >
       <div className="h-px flex-1 bg-border" />
       {children && (
-        <span
-          className="px-2 shrink-0 select-none"
-          data-slot="field-separator-content"
-        >
+        <span className="px-2 shrink-0 select-none" data-slot="field-separator-content">
           {children}
         </span>
       )}
@@ -211,13 +204,13 @@ function FieldError({
 
 export {
   Field,
-  FieldLabel,
+  FieldContent,
   FieldDescription,
   FieldError,
   FieldGroup,
+  FieldLabel,
   FieldLegend,
   FieldSeparator,
   FieldSet,
-  FieldContent,
   FieldTitle,
 };

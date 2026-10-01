@@ -31,7 +31,7 @@ type PushPayload = {
 self.addEventListener("push", (event) => {
   let payload: PushPayload = {};
   try {
-    payload = event.data?.json() ?? {};
+    payload = (event.data?.json() as PushPayload) ?? {};
   } catch {
     payload = { body: event.data?.text() };
   }
@@ -48,7 +48,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url: string = event.notification.data?.url ?? "/";
+  const url: string = (event.notification.data?.url as string) ?? "/";
 
   event.waitUntil(
     (async () => {

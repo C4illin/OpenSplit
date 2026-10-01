@@ -1,6 +1,8 @@
 # OpenSplit
 
 [![Docker](https://github.com/C4illin/OpenSplit/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/C4illin/OpenSplit/actions/workflows/docker-publish.yml)
+![GitHub repo size](https://img.shields.io/github/repo-size/C4illin/OpenSplit)
+![Docker container size](https://ghcr-badge.egpl.dev/c4illin/opensplit/size?color=%230375b6&tag=main&label=image+size&trim=)
 
 A self-hosted web application for splitting bills and expenses with friends. Only Google oauth is supported for authentication, but only UI is needed for more providers, as PocketBase supports many more providers out of the box. Currencies are fetched from European Central Bank (ECB) and therefore supports all currencies that are supported by ECB.
 
@@ -19,6 +21,7 @@ More can be added, submit a PR or issue!
 - Currency conversion (ECB rates)
 - Notifications
 - Progressive web app (PWA)
+- Recurring expenses
 
 ## Screenshots
 

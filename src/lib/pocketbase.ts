@@ -1,5 +1,5 @@
 import type { TypedPocketBase } from "@/types/pocketbase-types.gen";
-import PocketBase from "pocketbase";
+import PocketBase, { ClientResponseError } from "pocketbase";
 
 // Falls back to same-origin
 const pocketbaseUrl = import.meta.env.VITE_POCKETBASE_URL || window.location.origin;
@@ -12,8 +12,10 @@ pb.autoCancellation(false);
 if (pb.authStore.isValid) {
   pb.collection("users")
     .authRefresh()
-    .catch(() => {
-      pb.authStore.clear();
+    .catch((err) => {
+      if (err instanceof ClientResponseError && (err.status === 401 || err.status === 403)) {
+        pb.authStore.clear();
+      }
     });
 }
 

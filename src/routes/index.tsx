@@ -155,9 +155,9 @@ function RouteComponent() {
         <div className="flex flex-col items-center gap-2 text-center">
           <h1
             className="
-            text-4xl font-black tracking-tight
-            sm:text-5xl
-          "
+              text-4xl font-black tracking-tight
+              sm:text-5xl
+            "
           >
             OpenSplit
           </h1>

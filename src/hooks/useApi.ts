@@ -627,6 +627,21 @@ export const useUpdateProfile = () => {
   });
 };
 
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: async (data: {
+      oldPassword?: string;
+      password: string;
+      passwordConfirm: string;
+    }) => {
+      return await pb.send<{ success: boolean }>("/api/user/password", {
+        method: "POST",
+        body: data,
+      });
+    },
+  });
+};
+
 // Invites
 
 export const useCreateInvite = () => {

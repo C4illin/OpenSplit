@@ -4,10 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Wrapper } from "@/components/Wrapper";
-import { useCurrentUser, useExternalAuths, useUpdateProfile } from "@/hooks/useApi";
-import { useAuth } from "@/hooks/useAuth";
+import {
+  useChangePassword,
+  useCurrentUser,
+  useExternalAuths,
+  useUpdateProfile,
+} from "@/hooks/useApi";
+import { getAuthErrorMessage, useAuth } from "@/hooks/useAuth";
 import {
   isPushSupported,
   useDisablePush,
@@ -21,7 +32,7 @@ import { getAvatarUrl } from "@/lib/pocketbase";
 import { requireAuth } from "@/lib/requireAuth";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check } from "lucide-react";
+import { Check, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/profile")({
@@ -177,6 +188,173 @@ function NotificationsCard() {
   );
 }
 
+function ChangePasswordCard() {
+  const { data: externalAuths } = useExternalAuths();
+  const changePassword = useChangePassword();
+  const hasExternalAuth = !!externalAuths?.length;
+
+  const [oldPassword, setOldPassword] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  // Password changing is disabled on OAuth accounts
+  if (hasExternalAuth) {
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSaved(false);
+
+    if (!oldPassword) {
+      setError("Current password is required.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      await changePassword.mutateAsync({
+        oldPassword,
+        password,
+        passwordConfirm,
+      });
+      setOldPassword("");
+      setPassword("");
+      setPasswordConfirm("");
+      setSaved(true);
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Change password</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {error && (
+            <div
+              role="alert"
+              className="
+                rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm
+                text-destructive
+              "
+            >
+              {error}
+            </div>
+          )}
+          {saved && (
+            <div
+              role="status"
+              className="
+                rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm
+                text-emerald-600
+                dark:text-emerald-400
+              "
+            >
+              Password updated successfully.
+            </div>
+          )}
+
+          <Field>
+            <Label htmlFor="current-profile-password">Current password</Label>
+            <InputGroup>
+              <InputGroupInput
+                id="current-profile-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                required
+                placeholder="••••••••"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  type="button"
+                  size="icon-xs"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </Field>
+
+          <Field>
+            <Label htmlFor="new-profile-password">New password</Label>
+            <InputGroup>
+              <InputGroupInput
+                id="new-profile-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                placeholder="At least 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  type="button"
+                  size="icon-xs"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </Field>
+
+          <Field>
+            <Label htmlFor="confirm-profile-password">Confirm new password</Label>
+            <InputGroup>
+              <InputGroupInput
+                id="confirm-profile-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                placeholder="Repeat new password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  type="button"
+                  size="icon-xs"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </Field>
+
+          <Button type="submit" disabled={changePassword.isPending}>
+            {changePassword.isPending ? "Updating..." : "Update password"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 function RouteComponent() {
   const { data: user, isLoading } = useCurrentUser();
   const { data: externalAuths } = useExternalAuths();
@@ -237,7 +415,7 @@ function RouteComponent() {
       <Header link="/overview">
         <h1 className="text-xl font-semibold">Profile</h1>
       </Header>
-      <Wrapper className="flex flex-col gap-4">
+      <Wrapper className="flex flex-col gap-4 px-2 pb-4">
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -476,6 +654,8 @@ function RouteComponent() {
             </form>
           </CardContent>
         </Card>
+
+        <ChangePasswordCard />
 
         <Button variant="outline" onClick={handleLogout}>
           Log out

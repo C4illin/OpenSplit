@@ -6,7 +6,6 @@ const pocketbaseUrl = import.meta.env.VITE_POCKETBASE_URL || window.location.ori
 
 export const pb = new PocketBase(pocketbaseUrl) as TypedPocketBase;
 
-// Enable auto-refresh for auth
 pb.autoCancellation(false);
 
 export function getAvatarUrl(

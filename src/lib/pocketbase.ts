@@ -2,7 +2,7 @@ import type { TypedPocketBase } from "@/types/pocketbase-types.gen";
 import PocketBase from "pocketbase";
 
 // Falls back to same-origin
-const pocketbaseUrl = import.meta.env.VITE_POCKETBASE_URL || window.location.origin;
+const pocketbaseUrl = (import.meta.env.VITE_POCKETBASE_URL as string) || window.location.origin;
 
 export const pb = new PocketBase(pocketbaseUrl) as TypedPocketBase;
 

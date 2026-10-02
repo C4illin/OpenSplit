@@ -9,8 +9,8 @@ import { formatAmount, formatDay } from "@/lib/format";
 import { getAvatarUrl } from "@/lib/pocketbase";
 import { describeSchedule } from "@/lib/recurring";
 import { requireAuth } from "@/lib/requireAuth";
-import { cn } from "@/lib/utils";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { cn } from "cn";
 import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/group/$id/recurring/")({

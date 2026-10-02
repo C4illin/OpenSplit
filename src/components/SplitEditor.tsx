@@ -4,7 +4,7 @@ import { withForm } from "@/hooks/useAppForm";
 import { expenseFormDefaults } from "@/lib/expense-form";
 import { formatAmount } from "@/lib/format";
 import { getAvatarUrl } from "@/lib/pocketbase";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import { Check, RotateCcw } from "lucide-react";
 import { useState } from "react";
 

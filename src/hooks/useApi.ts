@@ -634,9 +634,24 @@ export const useChangePassword = () => {
       password: string;
       passwordConfirm: string;
     }) => {
-      const userId = pb.authStore.record?.id;
-      if (!userId) throw new Error("Not authenticated");
-      return await pb.collection("users").update<UsersResponse>(userId, data);
+      const user = pb.authStore.record as UsersResponse | null;
+      if (!user?.id) throw new Error("Not authenticated");
+      const identity = user.email || user.username;
+      if (!identity) throw new Error("User identity missing");
+
+      const updated = await pb.collection("users").update<UsersResponse>(user.id, data);
+
+      // PocketBase invalidates all existing tokens when a password changes by rotating tokenKey.
+      // pb.collection().update() keeps the existing (now invalidated) token in authStore.
+      // Re-authenticate with the new password to acquire a fresh valid token for the active session.
+      try {
+        await pb.collection("users").authWithPassword<UsersResponse>(identity, data.password);
+      } catch (authErr) {
+        pb.authStore.clear();
+        throw authErr;
+      }
+
+      return updated;
     },
   });
 };

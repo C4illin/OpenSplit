@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -107,9 +108,10 @@ func vapidSubject() string {
 	return "temporary@example.com"
 }
 
-// registerWebPush delivers every created `notifications` record to all the
-// recipient's registered devices. Records are created by pb_hooks (see
-// pb_hooks/notifications.pb.js) — this is only the transport.
+// registerWebPush sets up Web Push delivery for the app.
+// Direct hooks on `expenses` (both user-created and recurring) and
+// `settlements` deliver push notifications to group members without
+// storing intermediate records in the db.
 func registerWebPush(app *pocketbase.PocketBase) {
 	var keys *vapidKeys
 
@@ -127,8 +129,6 @@ func registerWebPush(app *pocketbase.PocketBase) {
 
 		// Diagnostic: push a test message to every device of the caller,
 		// synchronously, and report what the push service said for each one.
-		// Bypasses the `notifications` collection so the result can be
-		// returned to the caller instead of fire-and-forget.
 		se.Router.POST("/api/push/test", func(e *core.RequestEvent) error {
 			subscriptions, err := findPushSubscriptions(e.App, e.Auth.Id)
 			if err != nil {
@@ -161,34 +161,145 @@ func registerWebPush(app *pocketbase.PocketBase) {
 		return se.Next()
 	})
 
-	app.OnRecordAfterCreateSuccess("notifications").BindFunc(func(e *core.RecordEvent) error {
-		if keys == nil {
-			return e.Next()
+	// Fans out notifications to group members when expenses are created via the API
+	app.OnRecordCreateRequest("expenses").BindFunc(func(e *core.RecordRequestEvent) error {
+		if err := e.Next(); err != nil {
+			return err
 		}
 
-		subscriptions, err := findPushSubscriptions(e.App, e.Record.GetString("user"))
+		actor := e.Auth
+		actorName := "Someone"
+		if actor != nil {
+			if name := actor.GetString("name"); name != "" {
+				actorName = name
+			} else if email := actor.GetString("email"); email != "" {
+				actorName = email
+			}
+		}
+
+		group, err := e.App.FindRecordById("groups", e.Record.GetString("group"))
 		if err != nil {
-			e.App.Logger().Error("webpush: failed to load subscriptions", "error", err)
-			return e.Next()
+			e.App.Logger().Error("webpush: failed to load group for expense notification",
+				"error", err, "group", e.Record.GetString("group"))
+			return nil
 		}
 
-		payload, err := json.Marshal(map[string]string{
-			"title": e.Record.GetString("title"),
-			"body":  e.Record.GetString("body"),
-			"url":   e.Record.GetString("url"),
-		})
+		amount := strconv.FormatFloat(e.Record.GetFloat("amount"), 'f', -1, 64)
+		currency := strings.ToUpper(e.Record.GetString("currency"))
+		title := group.GetString("name")
+		body := fmt.Sprintf(`%s added "%s" — %s %s`, actorName, e.Record.GetString("title"), amount, currency)
+		targetURL := fmt.Sprintf("/group/%s", group.Id)
+
+		for _, memberId := range group.GetStringSlice("members") {
+			if actor != nil && memberId == actor.Id {
+				continue
+			}
+			sendNotificationToUser(e.App, keys, memberId, title, body, targetURL)
+		}
+
+		return nil
+	})
+
+	// Fans out notifications to payer/recipient when settlements are created via the API
+	app.OnRecordCreateRequest("settlements").BindFunc(func(e *core.RecordRequestEvent) error {
+		if err := e.Next(); err != nil {
+			return err
+		}
+
+		actor := e.Auth
+
+		group, err := e.App.FindRecordById("groups", e.Record.GetString("group"))
 		if err != nil {
+			e.App.Logger().Error("webpush: failed to load group for settlement notification",
+				"error", err, "group", e.Record.GetString("group"))
+			return nil
+		}
+
+		amount := strconv.FormatFloat(e.Record.GetFloat("amount"), 'f', -1, 64)
+		currency := strings.ToUpper(e.Record.GetString("currency"))
+
+		fromName := "Someone"
+		if fromUser, err := e.App.FindRecordById("users", e.Record.GetString("from")); err == nil {
+			if name := fromUser.GetString("name"); name != "" {
+				fromName = name
+			} else if email := fromUser.GetString("email"); email != "" {
+				fromName = email
+			}
+		}
+
+		title := group.GetString("name")
+		body := fmt.Sprintf("%s paid %s %s", fromName, amount, currency)
+		targetURL := fmt.Sprintf("/group/%s", group.Id)
+
+		actorID := ""
+		if actor != nil {
+			actorID = actor.Id
+		}
+
+		for _, uid := range []string{e.Record.GetString("from"), e.Record.GetString("to")} {
+			if uid == "" || uid == actorID {
+				continue
+			}
+			sendNotificationToUser(e.App, keys, uid, title, body, targetURL)
+		}
+
+		return nil
+	})
+
+	// Fans out notifications to all group members when recurring expenses are materialized
+	app.OnRecordAfterCreateSuccess("expenses").BindFunc(func(e *core.RecordEvent) error {
+		// Only handle recurring expenses (regular user-created expenses are handled above by OnRecordCreateRequest)
+		if e.Record.GetString("recurring") == "" {
 			return e.Next()
 		}
 
-		for _, subscription := range subscriptions {
-			routine.FireAndForget(func() {
-				sendPush(e.App, keys, subscription, payload)
-			})
+		group, err := e.App.FindRecordById("groups", e.Record.GetString("group"))
+		if err != nil {
+			e.App.Logger().Error("webpush: failed to load group for recurring expense notification",
+				"error", err, "group", e.Record.GetString("group"))
+			return e.Next()
+		}
+
+		amount := strconv.FormatFloat(e.Record.GetFloat("amount"), 'f', -1, 64)
+		currency := strings.ToUpper(e.Record.GetString("currency"))
+		title := group.GetString("name")
+		body := fmt.Sprintf(`Recurring expense "%s" — %s %s`, e.Record.GetString("title"), amount, currency)
+		targetURL := fmt.Sprintf("/group/%s", group.Id)
+
+		for _, memberId := range group.GetStringSlice("members") {
+			sendNotificationToUser(e.App, keys, memberId, title, body, targetURL)
 		}
 
 		return e.Next()
 	})
+}
+
+func sendNotificationToUser(app core.App, keys *vapidKeys, userId, title, body, targetURL string) {
+	if keys == nil || userId == "" {
+		return
+	}
+
+	subscriptions, err := findPushSubscriptions(app, userId)
+	if err != nil {
+		app.Logger().Error("webpush: failed to load subscriptions", "error", err, "user", userId)
+		return
+	}
+
+	payload, err := json.Marshal(map[string]string{
+		"title": title,
+		"body":  body,
+		"url":   targetURL,
+	})
+	if err != nil {
+		app.Logger().Error("webpush: failed to marshal payload", "error", err)
+		return
+	}
+
+	for _, subscription := range subscriptions {
+		routine.FireAndForget(func() {
+			sendPush(app, keys, subscription, payload)
+		})
+	}
 }
 
 func findPushSubscriptions(app core.App, userId string) ([]*core.Record, error) {

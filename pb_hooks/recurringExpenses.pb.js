@@ -1,8 +1,8 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Turns due `recurring_expenses` templates into regular expenses (plus splits
-// and notifications). The logic lives in ./recurring.js — see there for the
-// data model — and is require()'d inside each handler because handlers run in
+// Turns due `recurring_expenses` templates into regular expenses (plus splits).
+// Push notifications are delivered by Go hooks on `expenses`. The logic lives
+// in ./recurring.js — see there for the data model — and is require()'d inside
 // isolated contexts that cannot see top-level functions of this file.
 //
 // Runs hourly: templates are compared against "now", so the exact hour does

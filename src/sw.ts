@@ -41,14 +41,15 @@ self.addEventListener("push", (event) => {
       body: payload.body,
       icon: "/android-chrome-192x192.png",
       badge: "/android-chrome-192x192.png",
-      data: { url: payload.url ?? "/" },
+      data: { url: typeof payload.url === "string" ? payload.url : "/" },
     }),
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url: string = (event.notification.data?.url as string) ?? "/";
+  const rawUrl: unknown = event.notification.data?.url;
+  const url = typeof rawUrl === "string" ? rawUrl : "/";
 
   event.waitUntil(
     (async () => {

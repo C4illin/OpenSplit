@@ -161,58 +161,79 @@ func registerWebPush(app *pocketbase.PocketBase) {
 		return se.Next()
 	})
 
-	// Fans out notifications to group members when expenses are created via the API
+	// Captures actor info while e.Auth is available during the API request
 	app.OnRecordCreateRequest("expenses").BindFunc(func(e *core.RecordRequestEvent) error {
-		if err := e.Next(); err != nil {
-			return err
-		}
-
-		actor := e.Auth
-		actorName := "Someone"
-		if actor != nil {
+		if actor := e.Auth; actor != nil {
+			e.Record.Set("@actorId", actor.Id)
+			actorName := "Someone"
 			if name := actor.GetString("name"); name != "" {
 				actorName = name
 			} else if email := actor.GetString("email"); email != "" {
 				actorName = email
 			}
+			e.Record.Set("@actorName", actorName)
 		}
+		return e.Next()
+	})
 
+	// Captures actor ID while e.Auth is available during the API request
+	app.OnRecordCreateRequest("settlements").BindFunc(func(e *core.RecordRequestEvent) error {
+		if e.Auth != nil {
+			e.Record.Set("@actorId", e.Auth.Id)
+		}
+		return e.Next()
+	})
+
+	// Fans out notifications post-commit so rolled-back batch records do not trigger pushes
+	app.OnRecordAfterCreateSuccess("expenses").BindFunc(func(e *core.RecordEvent) error {
 		group, err := e.App.FindRecordById("groups", e.Record.GetString("group"))
 		if err != nil {
 			e.App.Logger().Error("webpush: failed to load group for expense notification",
 				"error", err, "group", e.Record.GetString("group"))
-			return nil
+			return e.Next()
 		}
 
 		amount := strconv.FormatFloat(e.Record.GetFloat("amount"), 'f', -1, 64)
 		currency := strings.ToUpper(e.Record.GetString("currency"))
+		targetURL := fmt.Sprintf("/group/%s", group.Id)
+		members := group.GetStringSlice("members")
+
+		// Recurring expense: notify all members (no actor to exclude)
+		if e.Record.GetString("recurring") != "" {
+			title := group.GetString("name")
+			body := fmt.Sprintf(`Recurring expense "%s" — %s %s`, e.Record.GetString("title"), amount, currency)
+			for _, memberId := range members {
+				sendNotificationToUser(e.App, keys, memberId, title, body, targetURL)
+			}
+			return e.Next()
+		}
+
+		// User-created expense: notify all members except the actor
+		actorID := e.Record.GetString("@actorId")
+		actorName := e.Record.GetString("@actorName")
+		if actorName == "" {
+			actorName = "Someone"
+		}
+
 		title := group.GetString("name")
 		body := fmt.Sprintf(`%s added "%s" — %s %s`, actorName, e.Record.GetString("title"), amount, currency)
-		targetURL := fmt.Sprintf("/group/%s", group.Id)
-
-		for _, memberId := range group.GetStringSlice("members") {
-			if actor != nil && memberId == actor.Id {
+		for _, memberId := range members {
+			if actorID != "" && memberId == actorID {
 				continue
 			}
 			sendNotificationToUser(e.App, keys, memberId, title, body, targetURL)
 		}
 
-		return nil
+		return e.Next()
 	})
 
-	// Fans out notifications to payer/recipient when settlements are created via the API
-	app.OnRecordCreateRequest("settlements").BindFunc(func(e *core.RecordRequestEvent) error {
-		if err := e.Next(); err != nil {
-			return err
-		}
-
-		actor := e.Auth
-
+	// Fans out notifications post-commit for settlements
+	app.OnRecordAfterCreateSuccess("settlements").BindFunc(func(e *core.RecordEvent) error {
 		group, err := e.App.FindRecordById("groups", e.Record.GetString("group"))
 		if err != nil {
 			e.App.Logger().Error("webpush: failed to load group for settlement notification",
 				"error", err, "group", e.Record.GetString("group"))
-			return nil
+			return e.Next()
 		}
 
 		amount := strconv.FormatFloat(e.Record.GetFloat("amount"), 'f', -1, 64)
@@ -230,44 +251,13 @@ func registerWebPush(app *pocketbase.PocketBase) {
 		title := group.GetString("name")
 		body := fmt.Sprintf("%s paid %s %s", fromName, amount, currency)
 		targetURL := fmt.Sprintf("/group/%s", group.Id)
-
-		actorID := ""
-		if actor != nil {
-			actorID = actor.Id
-		}
+		actorID := e.Record.GetString("@actorId")
 
 		for _, uid := range []string{e.Record.GetString("from"), e.Record.GetString("to")} {
-			if uid == "" || uid == actorID {
+			if uid == "" || (actorID != "" && uid == actorID) {
 				continue
 			}
 			sendNotificationToUser(e.App, keys, uid, title, body, targetURL)
-		}
-
-		return nil
-	})
-
-	// Fans out notifications to all group members when recurring expenses are materialized
-	app.OnRecordAfterCreateSuccess("expenses").BindFunc(func(e *core.RecordEvent) error {
-		// Only handle recurring expenses (regular user-created expenses are handled above by OnRecordCreateRequest)
-		if e.Record.GetString("recurring") == "" {
-			return e.Next()
-		}
-
-		group, err := e.App.FindRecordById("groups", e.Record.GetString("group"))
-		if err != nil {
-			e.App.Logger().Error("webpush: failed to load group for recurring expense notification",
-				"error", err, "group", e.Record.GetString("group"))
-			return e.Next()
-		}
-
-		amount := strconv.FormatFloat(e.Record.GetFloat("amount"), 'f', -1, 64)
-		currency := strings.ToUpper(e.Record.GetString("currency"))
-		title := group.GetString("name")
-		body := fmt.Sprintf(`Recurring expense "%s" — %s %s`, e.Record.GetString("title"), amount, currency)
-		targetURL := fmt.Sprintf("/group/%s", group.Id)
-
-		for _, memberId := range group.GetStringSlice("members") {
-			sendNotificationToUser(e.App, keys, memberId, title, body, targetURL)
 		}
 
 		return e.Next()

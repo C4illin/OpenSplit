@@ -1,8 +1,0 @@
-node_modules
-dist
-pb_data
-.git
-.tanstack
-.vscode
-.env
-pb_hooks/generateHooks.pb.js

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/input-group";
 import { Wrapper } from "@/components/Wrapper";
 import { pb } from "@/lib/pocketbase";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";

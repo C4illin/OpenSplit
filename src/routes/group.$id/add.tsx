@@ -11,7 +11,7 @@ import { useAppForm, withForm } from "@/hooks/useAppForm";
 import { pb } from "@/lib/pocketbase";
 import { isRateStale } from "@/lib/rates";
 import { requireAuth } from "@/lib/requireAuth";
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";

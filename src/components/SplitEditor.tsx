@@ -4,28 +4,72 @@ import { withForm } from "@/hooks/useAppForm";
 import { expenseFormDefaults } from "@/lib/expense-form";
 import { formatAmount } from "@/lib/format";
 import { getAvatarUrl } from "@/lib/pocketbase";
+import type { UsersResponse } from "@/types/pocketbase-types.gen";
 import { cn } from "cn";
 import { Check, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
-export type Member = {
-  id: string;
-  collectionId: string;
-  collectionName: string;
-  name: string;
-  username: string;
-  avatar: string;
-};
+function computeInitialLocked(
+  splits: { user: string; percentage: number }[] | undefined,
+  excluded: string[] | undefined,
+  members: UsersResponse[],
+): Set<number> {
+  const excludedSet = new Set(excluded || []);
+  const included = members.map((_, i) => i).filter((i) => !excludedSet.has(members[i].id));
+
+  if (included.length < 2 || !splits || splits.length === 0) return new Set();
+
+  const pcts = included.map((i) => splits[i]?.percentage ?? 0);
+  const minPct = Math.min(...pcts);
+  const maxPct = Math.max(...pcts);
+
+  // If all included members have essentially the same percentage (equal split),
+  // none are locked.
+  if (maxPct - minPct < 0.05) {
+    return new Set();
+  }
+
+  // Check if multiple members share the exact same percentage (unlocked remainder).
+  // E.g. Alice: 50%, Bob: 25%, Charlie: 25% -> Bob & Charlie shared the remainder.
+  const counts = new Map<number, number[]>();
+  for (const i of included) {
+    const rounded = Math.round((splits[i]?.percentage ?? 0) * 100) / 100;
+    const list = counts.get(rounded) || [];
+    list.push(i);
+    counts.set(rounded, list);
+  }
+
+  for (const list of counts.values()) {
+    if (list.length >= 2 && list.length < included.length) {
+      const lockedSet = new Set<number>();
+      const unlockedSet = new Set(list);
+      for (const i of included) {
+        if (!unlockedSet.has(i)) lockedSet.add(i);
+      }
+      return lockedSet;
+    }
+  }
+
+  // All included members have distinct percentages: the last included member
+  // was the sole remainder; all earlier included members were locked.
+  const lockedSet = new Set<number>();
+  for (let idx = 0; idx < included.length - 1; idx++) {
+    lockedSet.add(included[idx]);
+  }
+  return lockedSet;
+}
 
 export const SplitEditor = withForm({
   defaultValues: expenseFormDefaults,
   props: {
-    members: [] as Member[],
+    members: [] as UsersResponse[],
     currentUserId: "",
   },
   render: function SplitEditorRender({ form, members }) {
     const totalAmount = parseFloat(form.state.values.amount) || 0;
-    const [locked, setLocked] = useState<Set<number>>(() => new Set());
+    const [locked, setLocked] = useState<Set<number>>(() =>
+      computeInitialLocked(form.state.values.splits, form.state.values.excluded, members),
+    );
     const [displayMode, setDisplayMode] = useState<"percentage" | "value">("percentage");
     const [editing, setEditing] = useState<{ index: number; raw: string } | null>(null);
 
@@ -45,7 +89,7 @@ export const SplitEditor = withForm({
         if (excludedIds.includes(members[i].id)) {
           form.setFieldValue(`splits[${i}].percentage`, 0);
         } else if (!lockedSet.has(i)) {
-          form.setFieldValue(`splits[${i}].percentage`, Math.round(perUnlocked * 100) / 100);
+          form.setFieldValue(`splits[${i}].percentage`, perUnlocked);
         }
       }
     };
@@ -75,9 +119,9 @@ export const SplitEditor = withForm({
         }).format((totalAmount * pct) / 100);
       }
       return new Intl.NumberFormat(undefined, {
-        maximumFractionDigits: 1,
+        maximumFractionDigits: 2,
         useGrouping: false,
-      }).format(Math.round(pct * 10) / 10);
+      }).format(Math.round(pct * 100) / 100);
     };
 
     const parseLocaleNumber = (raw: string) => parseFloat(raw.replace(",", ".")) || 0;
@@ -106,7 +150,7 @@ export const SplitEditor = withForm({
       const perUnlocked = unlocked.length > 0 ? remainder / unlocked.length : 0;
 
       for (const i of unlocked) {
-        form.setFieldValue(`splits[${i}].percentage`, Math.round(perUnlocked * 100) / 100);
+        form.setFieldValue(`splits[${i}].percentage`, perUnlocked);
       }
     };
 
@@ -208,47 +252,56 @@ export const SplitEditor = withForm({
                         >
                           {isIncluded && <Check size={14} />}
                         </button>
-                        <Avatar size="sm">
+                        <Avatar size="sm" className="shrink-0">
                           <AvatarImage
                             src={getAvatarUrl(member, member.avatar)}
-                            alt={member.name || member.username}
+                            alt={member.name || member.email}
                           />
                           <AvatarFallback>
-                            {(member.name || member.username).charAt(0).toUpperCase()}
+                            {(member.name || member.email || "U").charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <span
                           className={cn(
-                            "flex-1 truncate text-sm",
+                            "min-w-0 flex-1 truncate text-sm",
                             !isIncluded && "text-muted-foreground",
                           )}
                         >
-                          {member.name || member.username}
+                          {member.name || member.email?.split("@")[0] || "User"}
                         </span>
 
                         {isIncluded ? (
                           isSoleRemainder ? (
-                            <span
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = new Set(locked);
+                                next.add(i);
+                                setLocked(next);
+                                setEditing({ index: i, raw: formatValue(pct) });
+                              }}
                               className="
-                                flex h-10 min-w-20 items-center justify-end px-1 text-lg
-                                text-muted-foreground tabular-nums
+                                flex h-10 w-24 shrink-0 cursor-text items-center justify-end px-1
+                                text-lg text-muted-foreground tabular-nums transition-colors
+                                hover:text-foreground
                               "
+                              title="Calculated automatically. Click to edit."
                             >
                               {formatValue(pct)}
-                            </span>
+                            </button>
                           ) : (
                             <Input
                               className={cn(
                                 `
-                                  field-sizing-content h-10 min-w-20 [appearance:textfield] border-0
-                                  bg-transparent px-1 text-right text-lg tabular-nums shadow-none
+                                  h-10 w-24 shrink-0 [appearance:textfield] border-0 bg-transparent
+                                  px-1 text-right text-lg tabular-nums shadow-none
                                   focus-visible:ring-0
                                   md:text-lg
                                   dark:bg-transparent
                                   [&::-webkit-inner-spin-button]:appearance-none
                                   [&::-webkit-outer-spin-button]:appearance-none
                                 `,
-                                isLocked && "font-medium text-foreground",
+                                isLocked ? "font-medium text-foreground" : "text-muted-foreground",
                               )}
                               type="text"
                               inputMode="decimal"
@@ -264,7 +317,7 @@ export const SplitEditor = withForm({
                         ) : (
                           <span
                             className="
-                              flex h-10 min-w-20 items-center justify-end px-1 text-lg
+                              flex h-10 w-24 shrink-0 items-center justify-end px-1 text-lg
                               text-muted-foreground tabular-nums
                             "
                           >
@@ -272,7 +325,7 @@ export const SplitEditor = withForm({
                           </span>
                         )}
 
-                        <span className="w-4 text-xs text-muted-foreground">
+                        <span className="w-4 shrink-0 text-xs text-muted-foreground">
                           {displayMode === "percentage" ? "%" : ""}
                         </span>
 
@@ -311,9 +364,9 @@ export const SplitEditor = withForm({
                     <span className={cn(Math.abs(totalPct - 100) > 0.1 && `text-destructive`)}>
                       {displayMode === "percentage"
                         ? `${new Intl.NumberFormat(undefined, {
-                            maximumFractionDigits: 1,
+                            maximumFractionDigits: 2,
                             useGrouping: false,
-                          }).format(Math.round(totalPct * 10) / 10)}%`
+                          }).format(Math.round(totalPct * 100) / 100)}%`
                         : formatAmount(totalAmount, form.state.values.currency)}
                     </span>
                   </div>

@@ -147,23 +147,6 @@ function createExpense(app, template, group, splits, dueDate, baseAmount) {
   return expense;
 }
 
-// Nobody "acted" on an automatic expense, so every member gets notified,
-// including the payer. The notifications.pb.js hook only fires for API
-// requests, so this is done here for records created by the cron.
-function notifyMembers(app, group, expense) {
-  const collection = app.findCollectionByNameOrId("notifications");
-  const amount = expense.get("amount");
-  const currency = (expense.get("currency") || "").toUpperCase();
-  for (const memberId of group.get("members") || []) {
-    const notification = new Record(collection);
-    notification.set("user", memberId);
-    notification.set("title", group.get("name"));
-    notification.set("body", `Recurring expense "${expense.get("title")}" — ${amount} ${currency}`);
-    notification.set("url", `/group/${group.id}`);
-    app.save(notification);
-  }
-}
-
 /**
  * Create every occurrence of one template that is due at `now`, advancing
  * `nextDate` past them and deactivating the template once `endDate` is
@@ -203,7 +186,6 @@ function materializeTemplate(app, template, now) {
         throw new Error(`no exchange rate for ${currency}->${base} on ${dayOf(nextDate)}`);
       }
       const expense = createExpense(tx, template, group, splits, nextDate, baseAmount);
-      notifyMembers(tx, group, expense);
       created++;
 
       const following = nextOccurrence(nextDate, anchor, frequency, interval);

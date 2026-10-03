@@ -16,7 +16,6 @@ export const Collections = {
 	Expenses: "expenses",
 	Groups: "groups",
 	Invites: "invites",
-	Notifications: "notifications",
 	Projects: "projects",
 	PushSubscriptions: "push_subscriptions",
 	Rates: "rates",
@@ -156,16 +155,6 @@ export type InvitesRecord = {
 	updated: IsoAutoDateString
 }
 
-export type NotificationsRecord = {
-	body?: string
-	created: IsoAutoDateString
-	id: string
-	title: string
-	updated: IsoAutoDateString
-	url?: string
-	user: RecordIdString
-}
-
 export type ProjectsRecord = {
 	created: IsoAutoDateString
 	group: RecordIdString
@@ -277,7 +266,6 @@ export type CurrenciesResponse<Texpand = unknown> = Required<CurrenciesRecord> &
 export type ExpensesResponse<Texpand = unknown> = Required<ExpensesRecord> & BaseSystemFields<Texpand>
 export type GroupsResponse<Texpand = unknown> = Required<GroupsRecord> & BaseSystemFields<Texpand>
 export type InvitesResponse<Texpand = unknown> = Required<InvitesRecord> & BaseSystemFields<Texpand>
-export type NotificationsResponse<Texpand = unknown> = Required<NotificationsRecord> & BaseSystemFields<Texpand>
 export type ProjectsResponse<Texpand = unknown> = Required<ProjectsRecord> & BaseSystemFields<Texpand>
 export type PushSubscriptionsResponse<Texpand = unknown> = Required<PushSubscriptionsRecord> & BaseSystemFields<Texpand>
 export type RatesResponse<Trates = unknown, Texpand = unknown> = Required<RatesRecord<Trates>> & BaseSystemFields<Texpand>
@@ -300,7 +288,6 @@ export type CollectionRecords = {
 	expenses: ExpensesRecord
 	groups: GroupsRecord
 	invites: InvitesRecord
-	notifications: NotificationsRecord
 	projects: ProjectsRecord
 	push_subscriptions: PushSubscriptionsRecord
 	rates: RatesRecord
@@ -322,7 +309,6 @@ export type CollectionResponses = {
 	expenses: ExpensesResponse
 	groups: GroupsResponse
 	invites: InvitesResponse
-	notifications: NotificationsResponse
 	projects: ProjectsResponse
 	push_subscriptions: PushSubscriptionsResponse
 	rates: RatesResponse

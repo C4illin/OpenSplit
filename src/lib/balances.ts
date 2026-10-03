@@ -40,7 +40,7 @@ export function computeBalances(
     // permanently owed to the payer).
     const totalPct = expenseSplits.reduce((sum, s) => sum + s.percentage, 0);
     if (totalPct === 0) continue;
-    const divisor = Math.abs(totalPct - 100) < 1e-6 ? 100 : totalPct;
+    const divisor = totalPct;
     for (const split of expenseSplits) {
       const owed = (split.percentage / divisor) * total;
       net[split.user] = (net[split.user] ?? 0) - owed;

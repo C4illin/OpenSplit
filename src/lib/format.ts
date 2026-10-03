@@ -22,3 +22,14 @@ export function formatDay(isoDay: string) {
   if (isNaN(parsed)) return isoDay;
   return new Date(parsed).toLocaleDateString(undefined, { dateStyle: "medium", timeZone: "UTC" });
 }
+
+/**
+ * Convert a UTC ISO date string into a local YYYY-MM-DDTHH:mm string
+ * suitable for a <input type="datetime-local">.
+ */
+export function toLocalDatetimeString(isoDate: string) {
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return "";
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+}

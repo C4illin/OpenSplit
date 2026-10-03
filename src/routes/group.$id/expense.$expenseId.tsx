@@ -68,7 +68,10 @@ function EditExpensePage() {
     },
     onSubmit: async ({ value }) => {
       const amount = parseFloat(value.amount);
-      const date = new Date(value.date).toISOString();
+      const date =
+        expense?.date && value.date === toLocalDatetimeString(expense.date)
+          ? expense.date
+          : new Date(value.date).toISOString();
 
       // Keep the originally locked rate unless the amount or currency changed;
       // otherwise re-convert at the rate effective on the expense's date.

@@ -45,7 +45,7 @@ export const SplitEditor = withForm({
         if (excludedIds.includes(members[i].id)) {
           form.setFieldValue(`splits[${i}].percentage`, 0);
         } else if (!lockedSet.has(i)) {
-          form.setFieldValue(`splits[${i}].percentage`, Math.round(perUnlocked * 100) / 100);
+          form.setFieldValue(`splits[${i}].percentage`, perUnlocked);
         }
       }
     };
@@ -106,7 +106,7 @@ export const SplitEditor = withForm({
       const perUnlocked = unlocked.length > 0 ? remainder / unlocked.length : 0;
 
       for (const i of unlocked) {
-        form.setFieldValue(`splits[${i}].percentage`, Math.round(perUnlocked * 100) / 100);
+        form.setFieldValue(`splits[${i}].percentage`, perUnlocked);
       }
     };
 

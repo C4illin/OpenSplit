@@ -1,7 +1,6 @@
 // Custom PocketBase build. Behaves like the stock binary (JS hooks in
 // pb_hooks, JS migrations in pb_migrations, static frontend from pb_public)
-// with one addition: Web Push delivery for the `notifications` collection,
-// which the stock binary can't do because the JSVM lacks the required crypto.
+// with native Web Push delivery and event hooks for notifications.
 // See webpush.go.
 package main
 

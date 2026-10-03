@@ -14,6 +14,7 @@ import {
 } from "@/hooks/useApi";
 import { useAppForm } from "@/hooks/useAppForm";
 import { expenseFormDefaults } from "@/lib/expense-form";
+import { toLocalDatetimeString } from "@/lib/format";
 import { pb } from "@/lib/pocketbase";
 import { requireAuth } from "@/lib/requireAuth";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -47,7 +48,7 @@ function EditExpensePage() {
       title: expense?.title ?? "",
       amount: expense?.amount?.toString() ?? "",
       currency: expense?.currency || base,
-      date: expense?.date ? expense.date.slice(0, 16) : "",
+      date: expense?.date ? toLocalDatetimeString(expense.date) : "",
       paidBy: expense?.paidBy ?? currentUserId,
       category: expense?.category ?? "",
       project: expense?.project ?? "",

@@ -1,7 +1,7 @@
 import { CategoryPicker } from "@/components/CategoryPicker";
-import { ProjectPicker } from "@/components/ProjectPicker";
 import { CurrencyPicker } from "@/components/CurrencyPicker";
-import { SplitEditor, type Member } from "@/components/SplitEditor";
+import { ProjectPicker } from "@/components/ProjectPicker";
+import { SplitEditor } from "@/components/SplitEditor";
 import { Button } from "@/components/ui/button";
 import type { RecurringExpense } from "@/hooks/useApi";
 import { useAppForm } from "@/hooks/useAppForm";
@@ -14,7 +14,10 @@ import {
   todayInput,
   type RecurringSplit,
 } from "@/lib/recurring";
-import { RecurringExpensesFrequencyOptions as Frequency } from "@/types/pocketbase-types.gen";
+import {
+  RecurringExpensesFrequencyOptions as Frequency,
+  type UsersResponse,
+} from "@/types/pocketbase-types.gen";
 import { ArrowLeft, Check } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
@@ -37,7 +40,7 @@ export type RecurringExpenseValues = {
 
 type Props = {
   groupId: string;
-  members: Member[];
+  members: UsersResponse[];
   /** Group base currency. */
   base: string;
   /** Existing template to edit; omit to create a new one. */

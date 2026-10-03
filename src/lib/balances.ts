@@ -40,9 +40,8 @@ export function computeBalances(
     // permanently owed to the payer).
     const totalPct = expenseSplits.reduce((sum, s) => sum + s.percentage, 0);
     if (totalPct === 0) continue;
-    const divisor = totalPct;
     for (const split of expenseSplits) {
-      const owed = (split.percentage / divisor) * total;
+      const owed = (split.percentage / totalPct) * total;
       net[split.user] = (net[split.user] ?? 0) - owed;
     }
   }
@@ -62,7 +61,7 @@ export function computeBalances(
 // distribute the rounding drift via the largest-remainder method.
 function roundToZeroSum(members: UsersResponse[], net: Record<string, number>): Balance[] {
   const entries = members.map((m) => {
-    const exactOre = Math.round((net[m.id] ?? 0) * 100 * 1e8) / 1e8;
+    const exactOre = (net[m.id] ?? 0) * 100;
     const floorOre = Math.floor(exactOre);
     return { member: m, ore: floorOre, frac: exactOre - floorOre };
   });

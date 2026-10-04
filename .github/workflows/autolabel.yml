@@ -1,0 +1,30 @@
+name: autolabel
+on:
+  pull_request_target:
+    types: [opened, edited, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+
+concurrency:
+  group: autolabel-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: c4illin/autolabel@v1
+        with:
+          type_labels: |
+            feat: feature
+            fix: fix
+            docs: documentation
+            style: style
+            refactor: refactor
+            perf: performance
+            test: test
+            build: build
+            ci: ci
+            revert: revert
+            breaking: breaking

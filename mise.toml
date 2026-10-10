@@ -1,6 +1,6 @@
 [tools]
 node = "24"
-pnpm = "12.8.1"
+pnpm = "12.11.2"
 viteplus = "1.0.0"
 go = "1.27"
 "go:golang.org/x/tools/gopls" = "latest"

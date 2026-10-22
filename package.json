@@ -26,7 +26,7 @@
     "@tanstack/react-router-devtools": "^1.167.2",
     "@tanstack/react-virtual": "^3.14.13",
     "class-variance-authority": "^0.7.1",
-    "cn": "^0.4.0",
+    "cn": "^0.5.0",
     "lucide-react": "^1.49.0",
     "pocketbase": "^0.28.1",
     "radix-ui": "^1.6.7",

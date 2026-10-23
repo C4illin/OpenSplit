@@ -12,6 +12,7 @@ A self-hosted web application for splitting bills and expenses with friends. Onl
   - Which supports payments with card and apple pay.
 - Swish (🇸🇪)
 - Vipps/Mobilepay (🇳🇴🇸🇪🇩🇰🇫🇮)
+- Manual
 
 More can be added, submit a PR or issue!
 

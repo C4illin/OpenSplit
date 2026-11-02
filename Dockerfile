@@ -1,5 +1,5 @@
 # Stage 1: Build the frontend
-FROM node:24-alpine AS frontend
+FROM node:26-alpine AS frontend
 
 RUN corepack enable pnpm
 
